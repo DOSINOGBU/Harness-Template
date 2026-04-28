@@ -9,6 +9,7 @@
 |---|---|
 | `WORKFLOW.md` | 작업 수명 주기와 컨텍스트 로딩 절차 |
 | `PROJECT_RULES.md` | 작업 규칙, 금지 사항, 승인 필요 작업 |
+| `AGENT_BEHAVIOR.md` | AI 에이전트의 기본 행동 기준 |
 | `PRODUCT_CONTEXT.md` | 제품 목적, 사용자, 성공 기준 |
 | `GLOSSARY.md` | 도메인 용어 사전 |
 | `CODE_STYLE.md` | 도구가 잡지 못하는 코드 판단 기준 |
@@ -20,6 +21,7 @@
 | `DEPENDENCIES.md` | 의존성 추가, 제거, 갱신 정책 |
 | `VERSION_CONTROL.md` | 커밋 단위, 메시지, 커밋 전 확인 기준 |
 | `PULL_REQUESTS.md` | PR 생성, 리뷰, 머지 전 확인 기준 |
+| `MAINTENANCE.md` | 드리프트 감지와 안전한 정리 기준 |
 | `PERFORMANCE.md` | 성능 예산과 흔한 함정 |
 | `ONBOARDING.md` | 신규 합류자(사람·AI) 출발점 |
 | `QUALITY_SCORE.md` | AI 작업 결과 품질 평가 기준 |
@@ -31,8 +33,8 @@
 
 | 단계 | 문서 | 사용 시점 |
 |---|---|---|
-| Essential | `../AGENTS.md`, `../ARCHITECTURE.md`, `WORKFLOW.md`, `PROJECT_RULES.md`, `TESTING.md` | 템플릿 도입과 모든 작업의 기본 진입점 |
-| Common | `PRODUCT_CONTEXT.md`, `QUALITY_SCORE.md`, `VERSION_CONTROL.md`, `PULL_REQUESTS.md`, `.harness/checklists/feature-change.md`, `.harness/checklists/bug-fix.md` | 기능 추가, 버그 수정, 커밋, PR처럼 자주 반복되는 작업 |
+| Essential | `../AGENTS.md`, `../ARCHITECTURE.md`, `WORKFLOW.md`, `PROJECT_RULES.md`, `AGENT_BEHAVIOR.md`, `TESTING.md` | 템플릿 도입과 모든 작업의 기본 진입점 |
+| Common | `PRODUCT_CONTEXT.md`, `QUALITY_SCORE.md`, `VERSION_CONTROL.md`, `PULL_REQUESTS.md`, `MAINTENANCE.md`, `.harness/checklists/feature-change.md`, `.harness/checklists/bug-fix.md` | 기능 추가, 버그 수정, 커밋, PR, 유지보수처럼 자주 반복되는 작업 |
 | Conditional | `SECURITY.md`, `DATA.md`, `DEPENDENCIES.md`, `PERFORMANCE.md`, `FRONTEND.md`, `BACKEND.md` | 해당 영역을 실제로 변경할 때 |
 | Mature / Optional | `adr/`, `generated/`, `references/`, `exec-plans/`, `exec-plans/tech-debt-tracker.md` | 결정 기록, 생성 문서, 외부 참고, 장기 계획이 필요한 단계 |
 

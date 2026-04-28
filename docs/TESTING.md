@@ -14,6 +14,10 @@
 | 빌드 | `TODO` | 배포 전 확인 |
 | 하네스 검증 | `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1` | 구조 확인, TODO 명령은 warning |
 | 하네스 엄격 검증 | `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Strict` | 실제 프로젝트 도입 후 TODO를 실패로 처리 |
+| 하네스 유지보수 검증 | `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Maintenance` | 드리프트 감지, 기본은 warning |
+| 하네스 엄격 유지보수 검증 | `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Maintenance -Strict` | 유지보수 finding을 실패로 처리 |
+| 코드 건강도 검증 | `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -CodeHealth` | 큰 코드 파일 감지, 기본은 warning |
+| 엄격 코드 건강도 검증 | `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -CodeHealth -Strict` | 1200줄 이상 코드 파일을 실패로 처리 |
 
 ## Verification Policy
 
