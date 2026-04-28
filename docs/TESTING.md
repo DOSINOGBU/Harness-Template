@@ -12,12 +12,15 @@
 | 린트 | `TODO` | 자동 수정 명령과 구분 |
 | 타입체크 | `TODO` | 타입 시스템이 있는 경우 |
 | 빌드 | `TODO` | 배포 전 확인 |
+| 하네스 검증 | `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1` | 구조 확인, TODO 명령은 warning |
+| 하네스 엄격 검증 | `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Strict` | 실제 프로젝트 도입 후 TODO를 실패로 처리 |
 
 ## Verification Policy
 
 - 기능 변경은 관련 테스트 또는 수동 시나리오를 반드시 기록합니다.
 - 버그 수정은 재현 방법과 수정 후 확인 방법을 함께 기록합니다.
 - 테스트를 실행하지 못한 경우 이유와 대체 검증을 남깁니다.
+- 템플릿 원본은 기본 하네스 검증을 사용하고, 실제 프로젝트에 적용한 뒤에는 엄격 검증을 통과시킵니다.
 
 ## Manual Scenario Template
 

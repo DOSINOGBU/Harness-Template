@@ -9,6 +9,18 @@
 3. `docs/PROJECT_RULES.md`로 금지·승인 사항을 확인합니다.
 4. `docs/TESTING.md`의 명령으로 환경을 확인합니다.
 
+## Template Adoption Checklist
+
+새 프로젝트에 이 템플릿을 붙인 뒤 첫 1시간 안에 아래만 먼저 채웁니다.
+모든 문서를 한 번에 완성하려고 하지 않습니다.
+
+- [ ] `docs/PRODUCT_CONTEXT.md`에 제품 목적과 핵심 사용자를 적었습니다.
+- [ ] `ARCHITECTURE.md`에 현재 구조와 주요 흐름을 3~5문장으로 적었습니다.
+- [ ] `docs/TESTING.md`의 설치, 테스트, 린트, 타입체크, 빌드 명령을 프로젝트에 맞게 채웠습니다.
+- [ ] `docs/PROJECT_RULES.md`의 금지·승인 사항이 현재 프로젝트에 맞는지 확인했습니다.
+- [ ] `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1`로 하네스 구조를 확인했습니다.
+- [ ] 실제 프로젝트 도입 후 `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Strict`가 통과하는지 확인했습니다.
+
 ## First Day
 
 - 작은 기능을 골라 `.harness/checklists/feature-change.md`로 한 사이클을 돕니다.
