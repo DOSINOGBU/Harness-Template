@@ -56,14 +56,18 @@ function Test-StaleActivePlans {
     $staleCount = 0
 
     foreach ($file in $files) {
-        if ($file.LastWriteTime -ge $cutoff) {
+        $relativePath = Get-RepoRelativePath -FullPath $file.FullName
+        $lastChanged = Get-FileLastChangedTime -File $file
+
+        if ($lastChanged.Value -ge $cutoff) {
             continue
         }
 
         $staleCount += 1
         Add-MaintenanceFinding -Check "maintenance-stale-active-plan" -Metadata @{
-            path = "docs/exec-plans/active/$($file.Name)"
-            days = [int]((Get-Date) - $file.LastWriteTime).TotalDays
+            path = $relativePath
+            days = [int]((Get-Date) - $lastChanged.Value).TotalDays
+            source = $lastChanged.Source
             thresholdDays = $thresholdDays
             strict = $Strict
         }
@@ -74,6 +78,33 @@ function Test-StaleActivePlans {
             count = $files.Count
             thresholdDays = $thresholdDays
         }
+    }
+}
+
+function Get-FileLastChangedTime {
+    param(
+        [System.IO.FileInfo]$File
+    )
+
+    $relativePath = Get-RepoRelativePath -FullPath $File.FullName
+
+    try {
+        $timestamp = git -C $repoRoot log -1 --format=%ct -- $relativePath 2>$null
+
+        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($timestamp)) {
+            return [pscustomobject]@{
+                Value = [DateTimeOffset]::FromUnixTimeSeconds([int64]$timestamp.Trim()).LocalDateTime
+                Source = "git_log"
+            }
+        }
+    }
+    catch {
+        # Fall back below when git is unavailable or the file is not tracked.
+    }
+
+    return [pscustomobject]@{
+        Value = $File.LastWriteTime
+        Source = "fallback_last_write_time"
     }
 }
 
@@ -120,9 +151,9 @@ function Test-PlaceholderDensity {
 
     foreach ($file in $files) {
         $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $file.FullName
-        $todoCount = [regex]::Matches($content, '\bTODO\b').Count
+        $placeholderCount = Get-PlaceholderCount -Content $content
 
-        if ($todoCount -lt $threshold) {
+        if ($placeholderCount -lt $threshold) {
             continue
         }
 
@@ -130,7 +161,8 @@ function Test-PlaceholderDensity {
         $findingCount += 1
         Add-MaintenanceFinding -Check "maintenance-placeholder-density" -Metadata @{
             path = $relativePath
-            count = $todoCount
+            count = $placeholderCount
+            patterns = ($script:harnessConfig.placeholderPatterns -join ",")
             threshold = $threshold
             strict = $Strict
         }
@@ -141,6 +173,65 @@ function Test-PlaceholderDensity {
             scanned = $files.Count
             threshold = $threshold
         }
+    }
+}
+
+function Get-PlaceholderCount {
+    param(
+        [string]$Content
+    )
+
+    $count = 0
+
+    foreach ($pattern in @($script:harnessConfig.placeholderPatterns)) {
+        if ([string]::IsNullOrWhiteSpace($pattern)) {
+            continue
+        }
+
+        if ($pattern -match '^\w+$') {
+            $regexPattern = "\b$([regex]::Escape($pattern))\b"
+        }
+        else {
+            $regexPattern = [regex]::Escape($pattern)
+        }
+
+        $count += [regex]::Matches($Content, $regexPattern).Count
+    }
+
+    return $count
+}
+
+function Test-ExecPlanUsage {
+    param(
+        [bool]$Strict
+    )
+
+    if (-not $script:harnessConfig.requireExecPlanUsage) {
+        Write-HarnessLog -Check "maintenance-exec-plan-usage" -Status "success" -Metadata @{
+            enabled = $false
+        }
+        return
+    }
+
+    $activePlanFolder = Resolve-RepoRelativePath -RelativePath "docs/exec-plans/active"
+    $completedPlanFolder = Resolve-RepoRelativePath -RelativePath "docs/exec-plans/completed"
+    $activePlans = @(Get-ChildItem -LiteralPath $activePlanFolder -Filter "*.md" -File)
+    $completedPlans = @(Get-ChildItem -LiteralPath $completedPlanFolder -Filter "*.md" -File)
+    $planCount = $activePlans.Count + $completedPlans.Count
+
+    if ($planCount -gt 0) {
+        Write-HarnessLog -Check "maintenance-exec-plan-usage" -Status "success" -Metadata @{
+            active = $activePlans.Count
+            completed = $completedPlans.Count
+        }
+        return
+    }
+
+    Add-MaintenanceFinding -Check "maintenance-exec-plan-usage" -Metadata @{
+        active = 0
+        completed = 0
+        reason = "no_exec_plans_found"
+        strict = $Strict
     }
 }
 
@@ -159,6 +250,7 @@ function Test-MaintenanceDrift {
     Test-StaleActivePlans -Strict:$Strict
     Test-GeneratedTodoTimestamps -Strict:$Strict
     Test-PlaceholderDensity -Strict:$Strict
+    Test-ExecPlanUsage -Strict:$Strict
 
     $findingThreshold = $script:harnessConfig.maintenanceFindingThreshold
 

@@ -1,6 +1,7 @@
 param(
     [ValidateSet("Template", "Project")]
     [string]$Mode = "Template",
+    [string]$RepoRoot = (Join-Path $PSScriptRoot ".."),
     [switch]$Strict,
     [switch]$Maintenance,
     [switch]$CodeHealth
@@ -8,7 +9,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$repoRoot = (Resolve-Path $RepoRoot).Path
 $script:errorCount = 0
 $script:warningCount = 0
 $script:maintenanceFindingCount = 0
@@ -19,9 +20,19 @@ $script:harnessConfig = @{
     maintenanceFindingThreshold = 5
     staleActivePlanDays = 14
     placeholderTodoThreshold = 3
+    placeholderPatterns = @("TODO", "FIXME", "TBD", "XXX", "???")
+    requireExecPlanUsage = $true
     codeHealthWarningLines = 500
     codeHealthFeatureFreezeLines = 800
     codeHealthFailureLines = 1200
+    codeHealthMarkupWarningLines = 800
+    codeHealthMarkupFeatureFreezeLines = 1200
+    codeHealthMarkupFailureLines = 1800
+    codeHealthMigrationWarningLines = 1200
+    codeHealthMigrationFeatureFreezeLines = 1800
+    codeHealthMigrationFailureLines = 2400
+    codeHealthLongFunctionLines = 120
+    codeHealthRepeatedLineThreshold = 6
     codeHealthExcludedPaths = @(
         ".git",
         "docs",
@@ -31,6 +42,13 @@ $script:harnessConfig = @{
         "build",
         "coverage",
         "node_modules"
+    )
+    codeHealthExcludedPatterns = @(
+        "**/generated/**",
+        "**/vendor/**",
+        "**/*.lock",
+        "**/*.generated.*",
+        "**/migrations/**"
     )
 }
 

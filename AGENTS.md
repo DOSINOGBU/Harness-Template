@@ -36,6 +36,12 @@
 | 데이터/마이그레이션 | `docs/DATA.md`, `.harness/checklists/migration.md` |
 | 의존성 추가/제거 | `docs/DEPENDENCIES.md`, `.harness/checklists/dependency-add.md` |
 | 성능 작업 | `docs/PERFORMANCE.md` |
+| 배포/롤백 | `docs/DEPLOYMENT.md`, `docs/RUNBOOK.md` |
+| 인프라/환경변수/시크릿 위치 | `docs/INFRASTRUCTURE.md`, `docs/SECURITY.md` |
+| 비용 영향 | `docs/COST.md` |
+| 접근성 | `docs/ACCESSIBILITY.md` |
+| 국제화/시간대/로케일 | `docs/INTERNATIONALIZATION.md` |
+| 라이선스/외부 에셋 | `docs/LICENSING.md`, `docs/DEPENDENCIES.md` |
 | 코드 스타일 판단 | `docs/CODE_STYLE.md` |
 | 장애 대응 | `.harness/checklists/incident.md`, `docs/RELIABILITY.md` |
 | 커밋/푸시 | `docs/VERSION_CONTROL.md`, `.harness/checklists/commit.md` |

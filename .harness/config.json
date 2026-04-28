@@ -3,10 +3,26 @@
     "maintenanceFindingThreshold": 5,
     "staleActivePlanDays": 14,
     "placeholderTodoThreshold": 3,
+    "placeholderPatterns": [
+      "TODO",
+      "FIXME",
+      "TBD",
+      "XXX",
+      "???"
+    ],
+    "requireExecPlanUsage": true,
     "codeHealth": {
       "warningLines": 500,
       "featureFreezeLines": 800,
       "failureLines": 1200,
+      "markupWarningLines": 800,
+      "markupFeatureFreezeLines": 1200,
+      "markupFailureLines": 1800,
+      "migrationWarningLines": 1200,
+      "migrationFeatureFreezeLines": 1800,
+      "migrationFailureLines": 2400,
+      "longFunctionLines": 120,
+      "repeatedLineThreshold": 6,
       "excludedPaths": [
         ".git",
         "docs",
@@ -16,6 +32,13 @@
         "build",
         "coverage",
         "node_modules"
+      ],
+      "excludedPatterns": [
+        "**/generated/**",
+        "**/vendor/**",
+        "**/*.lock",
+        "**/*.generated.*",
+        "**/migrations/**"
       ]
     }
   }

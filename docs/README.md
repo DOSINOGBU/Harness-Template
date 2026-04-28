@@ -36,8 +36,8 @@
 |---|---|---|
 | Essential | `../AGENTS.md`, `../ARCHITECTURE.md`, `WORKFLOW.md`, `PROJECT_RULES.md`, `AGENT_BEHAVIOR.md`, `TESTING.md` | 템플릿 도입과 모든 작업의 기본 진입점 |
 | Common | `PRODUCT_CONTEXT.md`, `QUALITY_SCORE.md`, `VERSION_CONTROL.md`, `PULL_REQUESTS.md`, `MAINTENANCE.md`, `.harness/checklists/feature-change.md`, `.harness/checklists/bug-fix.md` | 기능 추가, 버그 수정, 커밋, PR, 유지보수처럼 자주 반복되는 작업 |
-| Conditional | `SECURITY.md`, `DATA.md`, `DEPENDENCIES.md`, `PERFORMANCE.md`, `FRONTEND.md`, `BACKEND.md` | 해당 영역을 실제로 변경할 때 |
-| Mature / Optional | `adr/`, `generated/`, `references/`, `exec-plans/`, `exec-plans/tech-debt-tracker.md` | 결정 기록, 생성 문서, 외부 참고, 장기 계획이 필요한 단계 |
+| Conditional | `SECURITY.md`, `DATA.md`, `DEPENDENCIES.md`, `PERFORMANCE.md`, `FRONTEND.md`, `BACKEND.md`, `DEPLOYMENT.md`, `INFRASTRUCTURE.md`, `RUNBOOK.md`, `COST.md`, `ACCESSIBILITY.md`, `INTERNATIONALIZATION.md`, `LICENSING.md` | 해당 영역을 실제로 변경할 때 |
+| Mature / Optional | `adr/`, `generated/`, `references/`, `exec-plans/`, `exec-plans/tech-debt-tracker.md`, `LEARNING_LOG.md`, `AUTOMATION_EVOLUTION.md` | 결정 기록, 생성 문서, 외부 참고, 장기 계획, 자동화 진화가 필요한 단계 |
 
 `Optional`은 중요하지 않다는 뜻이 아닙니다.
 프로젝트가 아직 그 정보를 만들 만큼 성숙하지 않았거나, 현재 작업에 필요하지 않다면 초기 컨텍스트에서 제외해도 된다는 의미입니다.

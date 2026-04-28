@@ -24,3 +24,9 @@ AI 에이전트 작업 결과를 평가하기 위한 기준입니다.
 - 검증: 최소 1점
 - 디버깅 가능성: 최소 1점
 - 관련 없는 변경: 없어야 함
+
+## Usage
+
+- PR 작성 시 `.github/PULL_REQUEST_TEMPLATE.md`의 Quality Score 체크를 채웁니다.
+- 리뷰 요청 시 `.harness/prompts/review-change.md`가 이 기준을 함께 확인합니다.
+- PR 초안 작성 시 `.harness/prompts/prepare-pr.md`가 검증, 리스크, 품질 점수 항목을 포함합니다.

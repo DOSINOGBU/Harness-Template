@@ -7,7 +7,8 @@
 1. `README.md`(루트), `ARCHITECTURE.md`, `AGENTS.md`를 읽습니다.
 2. `docs/PRODUCT_CONTEXT.md`로 제품 목적을 파악합니다.
 3. `docs/PROJECT_RULES.md`로 금지·승인 사항을 확인합니다.
-4. `docs/TESTING.md`의 명령으로 환경을 확인합니다.
+4. `scripts/init-testing-commands.ps1`로 테스트 명령 후보를 감지합니다.
+5. 확인된 명령으로 `docs/TESTING.md`를 채우고 환경을 확인합니다.
 
 ## Template Adoption Checklist
 
@@ -16,6 +17,7 @@
 
 - [ ] `docs/PRODUCT_CONTEXT.md`에 제품 목적과 핵심 사용자를 적었습니다.
 - [ ] `ARCHITECTURE.md`에 현재 구조와 주요 흐름을 3~5문장으로 적었습니다.
+- [ ] `powershell -ExecutionPolicy Bypass -File scripts/init-testing-commands.ps1`로 명령 후보를 확인했습니다.
 - [ ] `docs/TESTING.md`의 설치, 테스트, 린트, 타입체크, 빌드 명령을 프로젝트에 맞게 채웠습니다.
 - [ ] `docs/PROJECT_RULES.md`의 금지·승인 사항이 현재 프로젝트에 맞는지 확인했습니다.
 - [ ] `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Mode Template`로 하네스 구조를 확인했습니다.

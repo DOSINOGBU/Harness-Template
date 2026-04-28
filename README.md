@@ -8,14 +8,26 @@ The template favors debuggability, small changes, explicit failure handling, and
 
 1. Copy this template into a project repository.
 2. Read `AGENTS.md`, `ARCHITECTURE.md`, and `docs/README.md`.
-3. Fill the first project-specific blanks in `docs/PRODUCT_CONTEXT.md`, `ARCHITECTURE.md`, and `docs/TESTING.md`.
-4. Run the template validation:
+3. Fill the first project-specific blanks in `docs/PRODUCT_CONTEXT.md` and `ARCHITECTURE.md`.
+4. Preview detected test commands:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/init-testing-commands.ps1
+```
+
+5. If the detected commands are correct, apply them to `docs/TESTING.md`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/init-testing-commands.ps1 -Apply
+```
+
+6. Run the template validation:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Mode Template
 ```
 
-5. After project-specific commands are filled, run project validation:
+7. After project-specific commands are filled, run project validation:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Mode Project
