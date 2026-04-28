@@ -25,6 +25,9 @@
 |---|---|
 | 작업 시작 절차 | `docs/WORKFLOW.md` |
 | 전체 구조 파악 | `ARCHITECTURE.md`, `docs/README.md` |
+| 템플릿 도입/검증 | `docs/ONBOARDING.md`, `scripts/validate-harness.ps1` |
+| 에이전트 행동 기준 | `docs/AGENT_BEHAVIOR.md` |
+| 정기 유지보수/드리프트 정리 | `docs/MAINTENANCE.md`, `.harness/checklists/maintenance.md` |
 | 기능 추가 | `docs/PRODUCT_CONTEXT.md`, `.harness/checklists/feature-change.md` |
 | 버그 수정 | `docs/TESTING.md`, `.harness/checklists/bug-fix.md` |
 | 리팩터링 | `ARCHITECTURE.md`, `.harness/checklists/refactor.md` |
@@ -35,6 +38,8 @@
 | 성능 작업 | `docs/PERFORMANCE.md` |
 | 코드 스타일 판단 | `docs/CODE_STYLE.md` |
 | 장애 대응 | `.harness/checklists/incident.md`, `docs/RELIABILITY.md` |
+| 커밋/푸시 | `docs/VERSION_CONTROL.md`, `.harness/checklists/commit.md` |
+| PR 생성/리뷰/머지 | `docs/PULL_REQUESTS.md`, `.harness/checklists/pull-request.md` |
 | 신규 합류 | `docs/ONBOARDING.md` |
 | 기술 선택 | `docs/adr/README.md` |
 
