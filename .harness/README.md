@@ -4,10 +4,11 @@
 
 ## Contents
 
-| 폴더 | 목적 |
+| 경로 | 목적 |
 |---|---|
 | `checklists/` | 작업 유형별 완료 기준 |
 | `prompts/` | 반복 사용 가능한 프롬프트 템플릿 |
+| `config.json` | 하네스 검증 기준과 제외 경로 |
 
 ## Checklists
 
@@ -44,7 +45,9 @@
 ## Validation
 
 `scripts/validate-harness.ps1`는 문서 인덱스와 체크리스트/프롬프트 연결이 실제 파일과 맞는지 확인합니다.
-템플릿 원본에서는 기본 모드를 사용하고, 실제 프로젝트 도입 후에는 `-Strict`로 `docs/TESTING.md`의 TODO 명령까지 실패로 처리합니다.
+템플릿 원본에서는 `-Mode Template`을 사용하고, 실제 프로젝트 도입 후에는 `-Mode Project`로 `docs/TESTING.md`의 TODO 명령까지 실패로 처리합니다.
+기존 `-Strict` 옵션은 호환용이며 `-Mode Project`와 같은 수준으로 동작합니다.
+검증 기준은 `.harness/config.json`에서 조정합니다.
 `-Maintenance`를 함께 사용하면 오래된 계획, 등록 누락, generated 문서 placeholder, 과도한 TODO를 warning으로 보고합니다.
 
 ## Principle

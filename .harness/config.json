@@ -1,0 +1,22 @@
+{
+  "validation": {
+    "maintenanceFindingThreshold": 5,
+    "staleActivePlanDays": 14,
+    "placeholderTodoThreshold": 3,
+    "codeHealth": {
+      "warningLines": 500,
+      "featureFreezeLines": 800,
+      "failureLines": 1200,
+      "excludedPaths": [
+        ".git",
+        "docs",
+        ".harness",
+        "vendor",
+        "dist",
+        "build",
+        "coverage",
+        "node_modules"
+      ]
+    }
+  }
+}
