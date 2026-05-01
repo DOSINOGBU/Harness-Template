@@ -7,6 +7,10 @@ param(
     [switch]$CodeHealth
 )
 
+# Keep Korean and other UTF-8 document output readable in Windows PowerShell.
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
 $ErrorActionPreference = "Stop"
 
 $repoRoot = (Resolve-Path $RepoRoot).Path
@@ -108,6 +112,7 @@ $script:harnessConfig = @{
 $moduleRoot = Join-Path $PSScriptRoot "harness-validation"
 $validationModules = @(
     "shared.ps1",
+    "encoding.ps1",
     "config.ps1",
     "index.ps1",
     "testing.ps1",
@@ -134,6 +139,7 @@ Write-HarnessLog -Check "validation" -Status "start" -Metadata @{
 }
 
 Import-HarnessConfig
+Test-DocumentationEncoding
 Test-AgentsRequiredReading
 Test-DocsCoreDocuments
 Test-HarnessIndexSection -SectionName "Checklists" -Folder ".harness/checklists" -Check "harness-checklist"

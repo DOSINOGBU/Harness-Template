@@ -171,6 +171,25 @@ try {
     $validFixture = New-MinimalFixture -Name "valid"
     Assert-ExitCode -Name "valid-template" -Result (Invoke-Validator -RepoRoot $validFixture -Arguments @("-Mode", "Template")) -ExpectedExitCode 0
 
+    $mojibakeFixture = New-MinimalFixture -Name "mojibake-doc"
+    $mojibakeText = "broken " + [string][char]0x00EC + " text`n"
+    New-TextFile -Path (Join-Path $mojibakeFixture "docs/MOJIBAKE.md") -Content $mojibakeText
+    $mojibakeResult = Invoke-Validator -RepoRoot $mojibakeFixture -Arguments @("-Mode", "Template")
+    Assert-ExitCode -Name "mojibake-doc-warning" -Result $mojibakeResult -ExpectedExitCode 0
+
+    if ($mojibakeResult.Output -notmatch "document-encoding" -or $mojibakeResult.Output -notmatch "latin_mojibake_prefix") {
+        throw "mojibake-doc-warning expected document-encoding latin_mojibake_prefix warning"
+    }
+
+    $invalidUtf8Fixture = New-MinimalFixture -Name "invalid-utf8-doc"
+    [System.IO.File]::WriteAllBytes((Join-Path $invalidUtf8Fixture "docs/INVALID.md"), [byte[]](0x23, 0x20, 0x80, 0x0A))
+    $invalidUtf8Result = Invoke-Validator -RepoRoot $invalidUtf8Fixture -Arguments @("-Mode", "Template")
+    Assert-ExitCode -Name "invalid-utf8-doc-warning" -Result $invalidUtf8Result -ExpectedExitCode 0
+
+    if ($invalidUtf8Result.Output -notmatch "document-encoding" -or $invalidUtf8Result.Output -notmatch "invalid_utf8") {
+        throw "invalid-utf8-doc-warning expected document-encoding invalid_utf8 warning"
+    }
+
     $malformedFixture = New-MinimalFixture -Name "malformed-testing"
     (Get-Content -Encoding UTF8 -LiteralPath (Join-Path $malformedFixture "docs/TESTING.md")) |
         ForEach-Object { $_ -replace '\| install \| `TODO` \|', '| install | TODO |' } |
