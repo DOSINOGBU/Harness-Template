@@ -50,6 +50,59 @@ $script:harnessConfig = @{
         "**/*.generated.*",
         "**/migrations/**"
     )
+    autoCommitWorkUnit = $true
+    autoPushAfterFeatureCommits = 2
+    autoPushBranches = @("codex/*", "feature/*", "fix/*")
+    protectedBranches = @("main", "master")
+    featureCommitTypes = @("feat", "fix", "refactor", "test", "perf")
+    blockedPathPatterns = @(
+        ".env",
+        ".env.*",
+        "**/.env",
+        "**/.env.*",
+        "**/*.pem",
+        "**/*.key",
+        "**/*.pfx",
+        "**/*.p12",
+        ".lecturedigest/**",
+        "data/raw/**",
+        "datasets/raw/**"
+    )
+    largeFileBytes = 10485760
+    largeOriginalDataPatterns = @(
+        "data/raw/**",
+        "datasets/raw/**",
+        "**/raw/**",
+        "**/*.zip",
+        "**/*.tar",
+        "**/*.tgz",
+        "**/*.7z"
+    )
+    workUnitCodePaths = @(
+        "src/**",
+        "app/**",
+        "lib/**",
+        "components/**",
+        "pages/**",
+        "server/**",
+        "client/**",
+        "api/**",
+        "scripts/**"
+    )
+    workUnitTestPaths = @(
+        "tests/**",
+        "test/**",
+        "__tests__/**",
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/*.Tests.*"
+    )
+    workUnitExecPlanCompletedPaths = @(
+        "docs/exec-plans/completed/**"
+    )
+    workUnitValidationPaths = @(
+        "docs/validation/**"
+    )
 }
 
 $moduleRoot = Join-Path $PSScriptRoot "harness-validation"

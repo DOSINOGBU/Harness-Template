@@ -32,6 +32,16 @@ function Test-TestingTodos {
 
     $isCodeHealthOnlyRun = $CodeHealth -and -not $Maintenance
 
+    if (-not $script:isProjectMode) {
+        Write-HarnessLog -Check "testing-todo" -Status "success" -Metadata @{
+            count = $todoCount
+            mode = $script:effectiveMode
+            reason = "template_allows_project_specific_todos"
+            strict = $Strict
+        }
+        return
+    }
+
     if ($script:isProjectMode -and -not $isCodeHealthOnlyRun) {
         Add-HarnessFailure -Check "testing-todo" -Metadata $metadata
         return

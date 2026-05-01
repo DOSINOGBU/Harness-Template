@@ -76,3 +76,46 @@ chore(repo): update gitignore
 - UI, DB, 상태관리, 문구 수정을 한 번에 포함
 - 자동 포맷과 기능 변경을 한 번에 포함
 - 미완성 기능과 관련 없는 정리를 함께 포함
+
+## Standard Work Unit Split
+
+기능/테스트 변경과 실행 계획 완료 문서가 함께 남는 것은 하네스의 표준 작업 단위입니다.
+이 조합은 혼합 변경으로 `hold`하지 않고, 검증 통과 후 자동 분리 대상입니다.
+
+표준 분리 대상:
+
+- 기능 또는 테스트 변경: `.harness/config.json`의 `versionControl.workUnitPaths.code`, `versionControl.workUnitPaths.tests`
+- 실행 계획 완료 문서: `versionControl.workUnitPaths.execPlansCompleted`
+- 검증 기록: `versionControl.workUnitPaths.validation`
+
+커밋 순서:
+
+1. `feat|fix|refactor|test|perf(scope): summary` 형식의 기능/테스트 커밋
+2. `docs(exec-plans): complete <plan-id>` 또는 `docs(validation): record <topic>` 형식의 문서 커밋
+
+`scripts/recommend-version-control.ps1 -VerificationStatus Passed`가 `Commit: auto_split_recommended`를 출력하면 `scripts/commit-work-unit.ps1`로 분리 커밋할 수 있습니다.
+코드 변경의 목적을 확정할 수 없으면 메시지를 추측하지 않고 커밋을 중단합니다.
+
+검증 상태별 기준:
+
+- `Passed`: 기능/테스트 커밋과 문서 커밋 모두 허용
+- `Partial`: 기능/테스트 커밋 금지, 실행 계획 또는 validation 기록만 허용
+- `Failed`: 자동 커밋과 자동 push 모두 금지
+
+## Auto Push Policy
+
+자동 push는 topic branch에서만 허용합니다.
+`main`, `master`, protected branch에서는 자동 push하지 않습니다.
+
+자동 push 조건:
+
+- `.harness/config.json`의 `versionControl.autoPushBranches`에 맞는 branch
+- upstream이 있음
+- upstream보다 behind 상태가 아님
+- working tree가 clean
+- 검증 상태가 `Passed`
+- 마지막 push 이후 `feat|fix|refactor|test|perf` 커밋이 `versionControl.autoPushAfterFeatureCommits`개 이상
+
+docs-only 커밋은 기능 커밋 카운트에 포함하지 않습니다.
+사용자가 push를 명시적으로 요청한 경우에도 protected branch와 실패한 검증은 우선 차단합니다.
+PR 생성은 자동화하지 않고 사용자가 요청할 때만 진행합니다.

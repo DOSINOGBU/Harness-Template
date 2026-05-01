@@ -113,6 +113,18 @@ function Import-HarnessConfig {
     Set-PositiveIntegerConfigValue -Key "codeHealthRepeatedLineThreshold" -Value $config.validation.codeHealth.repeatedLineThreshold
     Set-StringArrayConfigValue -Key "codeHealthExcludedPaths" -Value $config.validation.codeHealth.excludedPaths
     Set-StringArrayConfigValue -Key "codeHealthExcludedPatterns" -Value $config.validation.codeHealth.excludedPatterns
+    Set-BooleanConfigValue -Key "autoCommitWorkUnit" -Value $config.versionControl.autoCommitWorkUnit
+    Set-PositiveIntegerConfigValue -Key "autoPushAfterFeatureCommits" -Value $config.versionControl.autoPushAfterFeatureCommits
+    Set-StringArrayConfigValue -Key "autoPushBranches" -Value $config.versionControl.autoPushBranches
+    Set-StringArrayConfigValue -Key "protectedBranches" -Value $config.versionControl.protectedBranches
+    Set-StringArrayConfigValue -Key "featureCommitTypes" -Value $config.versionControl.featureCommitTypes
+    Set-StringArrayConfigValue -Key "blockedPathPatterns" -Value $config.versionControl.blockedPathPatterns
+    Set-PositiveIntegerConfigValue -Key "largeFileBytes" -Value $config.versionControl.largeFileBytes
+    Set-StringArrayConfigValue -Key "largeOriginalDataPatterns" -Value $config.versionControl.largeOriginalDataPatterns
+    Set-StringArrayConfigValue -Key "workUnitCodePaths" -Value $config.versionControl.workUnitPaths.code
+    Set-StringArrayConfigValue -Key "workUnitTestPaths" -Value $config.versionControl.workUnitPaths.tests
+    Set-StringArrayConfigValue -Key "workUnitExecPlanCompletedPaths" -Value $config.versionControl.workUnitPaths.execPlansCompleted
+    Set-StringArrayConfigValue -Key "workUnitValidationPaths" -Value $config.versionControl.workUnitPaths.validation
 
     if ($script:errorCount -eq $errorCountBeforeValidation) {
         Write-HarnessLog -Check "config" -Status "success" -Metadata @{
