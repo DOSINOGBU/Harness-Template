@@ -2,7 +2,7 @@ param(
     [ValidateSet("Passed", "Failed", "Partial", "Unknown")]
     [string]$VerificationStatus = "Unknown",
     [string]$RepoRoot = (Join-Path $PSScriptRoot ".."),
-    [ValidateSet("feat", "fix", "refactor", "test", "perf")]
+    [ValidateSet("feat", "fix", "refactor", "docs", "style", "test", "chore", "perf")]
     [string]$Type = "feat",
     [string]$Scope = "work",
     [string]$Summary = "describe change",
@@ -78,9 +78,13 @@ elseif ($VerificationStatus -eq "Failed") {
     $commitStatus = "hold"
     $commitReason = "verification_failed"
 }
-elseif ($hasUnrelatedChanges -or $hasDocsOtherWithWorkUnit) {
+elseif ($hasUnrelatedChanges) {
     $commitStatus = "hold"
     $commitReason = "unrelated_changes_present"
+}
+elseif ($hasDocsOtherWithWorkUnit) {
+    $commitStatus = "hold"
+    $commitReason = "mixed_work_unit_and_other_docs"
 }
 elseif ($VerificationStatus -eq "Partial" -and $hasFeatureChanges) {
     $commitStatus = "hold"

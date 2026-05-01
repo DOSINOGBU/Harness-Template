@@ -208,7 +208,17 @@ function Get-HarnessPathGroup {
         return "code"
     }
 
-    if ($Path -like "docs/*" -or $Path -like "*.md" -or $Path -like ".harness/checklists/*" -or $Path -like ".harness/prompts/*") {
+    if (
+        $Path -like "docs/*" -or
+        $Path -like "*.md" -or
+        $Path -like "*.txt" -or
+        $Path -like ".harness/checklists/*" -or
+        $Path -like ".harness/prompts/*" -or
+        $Path -eq ".editorconfig" -or
+        $Path -eq ".gitattributes" -or
+        $Path -eq ".gitignore" -or
+        $Path -like ".github/*"
+    ) {
         return "docs_other"
     }
 

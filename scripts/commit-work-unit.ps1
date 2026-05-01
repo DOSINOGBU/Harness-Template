@@ -2,7 +2,7 @@ param(
     [string]$RepoRoot = (Join-Path $PSScriptRoot ".."),
     [ValidateSet("Passed", "Failed", "Partial", "Unknown")]
     [string]$VerificationStatus = "Unknown",
-    [ValidateSet("feat", "fix", "refactor", "test", "perf")]
+    [ValidateSet("feat", "fix", "refactor", "docs", "style", "test", "chore", "perf")]
     [string]$Type,
     [string]$Scope,
     [string]$Summary,
@@ -92,9 +92,14 @@ if ($blockedFindings.Count -gt 0) {
     throw "Blocked paths prevent automatic commit: $blockedText"
 }
 
-if ($summaryObject.Other.Count -gt 0 -or $summaryObject.DocsOther.Count -gt 0) {
-    $unrelated = @($summaryObject.Other + $summaryObject.DocsOther) -join ", "
+if ($summaryObject.Other.Count -gt 0) {
+    $unrelated = @($summaryObject.Other) -join ", "
     throw "Unrelated changes prevent automatic work-unit commit: $unrelated"
+}
+
+if ($summaryObject.DocsOther.Count -gt 0) {
+    $mixedDocs = @($summaryObject.DocsOther) -join ", "
+    throw "Other documentation or repo hygiene changes prevent automatic work-unit commit: $mixedDocs"
 }
 
 $hasFeatureChanges = $summaryObject.Feature.Count -gt 0

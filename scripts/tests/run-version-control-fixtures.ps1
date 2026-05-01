@@ -231,6 +231,19 @@ try {
     Assert-OutputMatches -Name "recommend-auto-split" -Result $autoSplitResult -Pattern "Commit: auto_split_recommended"
     Assert-OutputMatches -Name "recommend-auto-split-message" -Result $autoSplitResult -Pattern "docs\(exec-plans\): complete sample-plan"
 
+    $choreTypeFixture = New-VersionControlFixture -Name "chore-type"
+    New-TextFile -Path (Join-Path $choreTypeFixture "scripts/cleanup.ps1") -Content "'cleanup'`n"
+    $choreTypeResult = Invoke-Recommend -RepoRoot $choreTypeFixture -Arguments @("-VerificationStatus", "Passed", "-Type", "chore", "-Scope", "repo", "-Summary", "tighten worktree hygiene")
+    Assert-ExitCode -Name "recommend-chore-type" -Result $choreTypeResult -ExpectedExitCode 0
+    Assert-OutputMatches -Name "recommend-chore-type-message" -Result $choreTypeResult -Pattern "chore\(repo\): tighten worktree hygiene"
+
+    $repoHygieneFixture = New-VersionControlFixture -Name "repo-hygiene"
+    New-TextFile -Path (Join-Path $repoHygieneFixture ".editorconfig") -Content "root = true`n"
+    New-TextFile -Path (Join-Path $repoHygieneFixture ".gitattributes") -Content "* text=auto`n"
+    $repoHygieneResult = Invoke-Recommend -RepoRoot $repoHygieneFixture -Arguments @("-VerificationStatus", "Passed")
+    Assert-ExitCode -Name "recommend-repo-hygiene-docs" -Result $repoHygieneResult -ExpectedExitCode 0
+    Assert-OutputMatches -Name "recommend-repo-hygiene-docs" -Result $repoHygieneResult -Pattern "Commit: docs_recommended"
+
     $blockedFixture = New-VersionControlFixture -Name "blocked-env"
     New-TextFile -Path (Join-Path $blockedFixture ".env") -Content "TOKEN=secret`n"
     $blockedResult = Invoke-Recommend -RepoRoot $blockedFixture -Arguments @("-VerificationStatus", "Passed")
@@ -274,10 +287,10 @@ try {
     $unrelatedResult = Invoke-CommitWorkUnit -RepoRoot $unrelatedFixture -Arguments @("-VerificationStatus", "Passed", "-Type", "feat", "-Scope", "sample", "-Summary", "add sample flow")
 
     if ($unrelatedResult.ExitCode -eq 0) {
-        throw "commit-unrelated expected failure for unrelated docs"
+        throw "commit-unrelated expected failure for mixed docs"
     }
 
-    Assert-OutputMatches -Name "commit-unrelated" -Result $unrelatedResult -Pattern "Unrelated changes prevent automatic work-unit commit"
+    Assert-OutputMatches -Name "commit-unrelated" -Result $unrelatedResult -Pattern "Other documentation or repo hygiene changes prevent automatic work-unit commit"
     Write-FixtureLog -Status "passed" -Metadata @{ name = "commit-unrelated"; exitCode = $unrelatedResult.ExitCode }
 
     $pushHoldFixture = New-VersionControlFixture -Name "push-hold" -WithRemote
