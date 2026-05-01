@@ -21,6 +21,7 @@
 | 프로젝트 코드 건강도 검증 | `powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -CodeHealth -Mode Project` | 1200줄 이상 코드 파일을 실패로 처리 |
 | 테스트 명령 감지 | `powershell -ExecutionPolicy Bypass -File scripts/init-testing-commands.ps1` | 감지 결과만 출력, 파일 변경 없음 |
 | 테스트 명령 적용 | `powershell -ExecutionPolicy Bypass -File scripts/init-testing-commands.ps1 -Apply` | 확인 후 `docs/TESTING.md` 명령 표 갱신 |
+| 에이전트 컨텍스트 부트스트랩 | `powershell -ExecutionPolicy Bypass -File scripts/bootstrap-agent-context.ps1` | 작업 시작 전 읽기 전용 환경 요약 |
 | validator 자기 테스트 | `powershell -ExecutionPolicy Bypass -File scripts/tests/run-validator-fixtures.ps1` | fixture 기반 하네스 검증 |
 | 버전관리 자동화 자기 테스트 | `powershell -ExecutionPolicy Bypass -File scripts/tests/run-version-control-fixtures.ps1` | 추천, 분리 커밋, push 판단 fixture 검증 |
 
@@ -33,6 +34,8 @@
 - 실제 프로젝트에 적용한 뒤에는 `-Mode Project`를 통과시킵니다.
 - `-Strict`는 기존 사용자를 위한 호환 옵션이며 `-Mode Project`와 같은 수준으로 처리합니다.
 - `init-testing-commands.ps1`는 자동 적용 전에 반드시 dry-run 출력으로 명령을 확인합니다.
+- `bootstrap-agent-context.ps1`는 읽기 전용이어야 하며, 출력은 작업 시작 컨텍스트로만 사용합니다.
+- 완료 전에는 `.harness/checklists/pre-completion.md`로 원래 요청과 검증 결과를 다시 비교합니다.
 
 ## Manual Scenario Template
 

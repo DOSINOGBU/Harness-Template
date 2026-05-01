@@ -17,4 +17,7 @@
 
 | 후보 | 현재 단계 | 다음 단계 | 근거 |
 |---|---|---|---|
-| TODO | TODO | TODO | TODO |
+| Pre-completion self-verify | Prompt / Checklist | Hook | 완료 직전 검증 누락을 줄이기 위해 종료 전 점검을 강제할 수 있습니다. |
+| Context bootstrap | Script | Middleware | 작업 시작 시 환경 탐색을 자동 주입하면 문서·명령 누락을 줄일 수 있습니다. |
+| Loop detection | Checklist | Tool hook | 같은 파일 반복 수정과 같은 검증 반복 실패를 감지하면 접근 재검토를 유도할 수 있습니다. |
+| Agent run log | Document | Trace store | 반복 실패를 수동 감이 아니라 기록 기반으로 분석할 수 있습니다. |

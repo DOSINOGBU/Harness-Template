@@ -15,19 +15,25 @@ The template favors debuggability, small changes, explicit failure handling, and
 powershell -ExecutionPolicy Bypass -File scripts/init-testing-commands.ps1
 ```
 
-5. If the detected commands are correct, apply them to `docs/TESTING.md`:
+5. Preview the agent start context:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/bootstrap-agent-context.ps1
+```
+
+6. If the detected commands are correct, apply them to `docs/TESTING.md`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/init-testing-commands.ps1 -Apply
 ```
 
-6. Run the template validation:
+7. Run the template validation:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Mode Template
 ```
 
-7. After project-specific commands are filled, run project validation:
+8. After project-specific commands are filled, run project validation:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Mode Project
@@ -66,6 +72,7 @@ powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -CodeHealt
 - `docs/README.md`: document index and adoption tiers
 - `.harness/README.md`: reusable checklists and prompts
 - `.harness/config.json`: validation thresholds and exclusions
+- `scripts/bootstrap-agent-context.ps1`: read-only startup context for agents
 - `scripts/validate-harness.ps1`: local validation entrypoint
 - `scripts/harness-validation/`: validation modules split by responsibility
 

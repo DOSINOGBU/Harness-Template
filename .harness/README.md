@@ -25,6 +25,7 @@
 | `commit.md` | 커밋 전 점검 |
 | `pull-request.md` | PR 생성·머지 전 점검 |
 | `maintenance.md` | 드리프트 정리 전 점검 |
+| `pre-completion.md` | 완료 보고 직전 자체 검증 |
 
 ## Prompts
 
@@ -41,6 +42,7 @@
 | `commit-change.md` | 변경 검토 후 커밋 |
 | `prepare-pr.md` | PR 제목과 본문 초안 작성 |
 | `cleanup-drift.md` | 유지보수 감지 결과 정리 |
+| `pre-completion-self-verify.md` | 종료 전 요구사항·검증·루프 신호 확인 |
 
 ## Validation
 
@@ -49,6 +51,9 @@
 기존 `-Strict` 옵션은 호환용이며 `-Mode Project`와 같은 수준으로 동작합니다.
 검증 기준은 `.harness/config.json`에서 조정합니다.
 `-Maintenance`를 함께 사용하면 오래된 계획, 등록 누락, generated 문서 placeholder, 과도한 TODO를 warning으로 보고합니다.
+
+`scripts/bootstrap-agent-context.ps1`는 작업 시작 전에 저장소 구조, 필수 문서, 테스트 명령, 런타임, git 상태, placeholder 현황을 읽기 전용으로 요약합니다.
+이 출력은 에이전트가 환경 탐색을 건너뛰지 않도록 돕는 시작 컨텍스트입니다.
 
 ## Principle
 

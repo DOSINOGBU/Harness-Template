@@ -6,7 +6,13 @@
 
 | 날짜 | 반복된 실수 | 발생 작업 | 원인 | 현재 대응 | 자동화 후보 |
 |---|---|---|---|---|---|
-| TODO | TODO | TODO | TODO | memo / checklist / automation | TODO |
+| 예시 | 검증 없이 완료 보고 | 기능 구현 | 완료 전 점검 부재 | checklist | pre-completion hook |
+
+## Input Sources
+
+- `docs/agent-runs/`의 반복 실패와 검증 누락 기록을 확인합니다.
+- 코드 리뷰에서 같은 지적이 반복되면 이 문서에 먼저 기록합니다.
+- 같은 항목이 두 번 이상 반복되면 관련 checklist에 반영합니다.
 
 ## Promotion Rule
 

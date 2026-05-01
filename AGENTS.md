@@ -23,10 +23,10 @@
 
 | 상황 | 먼저 읽을 문서 |
 |---|---|
-| 작업 시작 절차 | `docs/WORKFLOW.md` |
+| 작업 시작 절차 | `docs/WORKFLOW.md`, `scripts/bootstrap-agent-context.ps1` |
 | 전체 구조 파악 | `ARCHITECTURE.md`, `docs/README.md` |
 | 템플릿 도입/검증 | `docs/ONBOARDING.md`, `scripts/validate-harness.ps1` |
-| 에이전트 행동 기준 | `docs/AGENT_BEHAVIOR.md` |
+| 에이전트 행동 기준 | `docs/AGENT_BEHAVIOR.md`, `.harness/checklists/pre-completion.md` |
 | 정기 유지보수/드리프트 정리 | `docs/MAINTENANCE.md`, `.harness/checklists/maintenance.md` |
 | 기능 추가 | `docs/PRODUCT_CONTEXT.md`, `.harness/checklists/feature-change.md` |
 | 버그 수정 | `docs/TESTING.md`, `.harness/checklists/bug-fix.md` |
