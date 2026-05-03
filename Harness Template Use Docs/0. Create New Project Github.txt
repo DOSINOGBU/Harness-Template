@@ -1,13 +1,18 @@
 새 프로젝트 만들기
 $Project = "My-New-Project"
+$BaseDir = "C:\Users\unhye\Project\3. WIP"
+
 $TemplateRepo = "https://github.com/DOSINOGBU/Harness-Template.git"
 $TemplateBranch = "docs/harness-governance"
 
 $Slug = $Project.ToLower() -replace '[^a-z0-9._-]+','-'
 $WorkBranch = "project/$Slug"
 
+New-Item -ItemType Directory -Force -Path $BaseDir | Out-Null
+Set-Location $BaseDir
+
 git clone --branch $TemplateBranch --depth 1 $TemplateRepo $Project
-cd $Project
+Set-Location $Project
 
 Remove-Item -Recurse -Force .git
 
