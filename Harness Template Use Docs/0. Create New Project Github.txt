@@ -1,7 +1,10 @@
 새 프로젝트 만들기
-$Project = "프로젝트 명"
+$Project = "My-New-Project"
 $TemplateRepo = "https://github.com/DOSINOGBU/Harness-Template.git"
 $TemplateBranch = "docs/harness-governance"
+
+$Slug = $Project.ToLower() -replace '[^a-z0-9._-]+','-'
+$WorkBranch = "project/$Slug"
 
 git clone --branch $TemplateBranch --depth 1 $TemplateRepo $Project
 cd $Project
@@ -20,3 +23,6 @@ gh repo create "$User/$Project" `
   --source . `
   --remote origin `
   --push
+
+git switch -c $WorkBranch
+git push -u origin $WorkBranch
