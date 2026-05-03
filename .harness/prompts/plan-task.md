@@ -9,6 +9,8 @@
 4. 이 작업이 다른 기능의 입력 또는 전제 조건인지 확인해줘.
 5. 핵심 산출물 품질 기준이 필요한 경우, downstream 기능보다 먼저 품질 게이트 계획을 만들어줘.
 6. mock/fake 검증과 실제 샘플 품질 검증을 분리해서 계획해줘.
-7. 검증 방법과 리스크를 포함해줘.
-8. 기존 구조를 깨는 선택지는 별도 대안으로 분리해줘.
+7. 긴 API 작업이나 자동 파이프라인이면 checkpoint, resume, time budget, candidate limit를 기본 설계 항목으로 포함해줘.
+8. 후보 처리 작업이면 acceptance mode를 `all candidates completed` 또는 `minimum valid candidates secured` 중 하나로 명시해줘.
+9. 검증 방법과 리스크를 포함해줘.
+10. 기존 구조를 깨는 선택지는 별도 대안으로 분리해줘.
 ```

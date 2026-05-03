@@ -7,6 +7,8 @@
 - [ ] 승인/검수 기준이 필요한 기능이면 구현 전에 기준을 문서화했습니다.
 - [ ] 실제 샘플 또는 대표 데이터로 품질 확인 계획이 있습니다.
 - [ ] 단순 mock/fake 테스트와 실제 품질 검증을 구분했습니다.
+- [ ] 긴 API 작업이나 자동 파이프라인이면 checkpoint, resume, time budget, candidate limit를 정했습니다.
+- [ ] 후보 처리 작업이면 `all candidates completed`와 `minimum valid candidates secured` 중 어떤 acceptance mode인지 정했습니다.
 - [ ] 변경 범위를 최소화했습니다.
 - [ ] 중요한 입력을 경계에서 검증했습니다.
 - [ ] 로딩, 빈 상태, 오류 상태를 고려했습니다.

@@ -1,13 +1,22 @@
 새 프로젝트 만들기
-git clone --branch docs/harness-governance https://github.com/DOSINOGBU/Harness-Template.git My-New-Project
-cd My-New-Project
+$Project = "프로젝트 명"
+$TemplateRepo = "https://github.com/DOSINOGBU/Harness-Template.git"
+$TemplateBranch = "docs/harness-governance"
+
+git clone --branch $TemplateBranch --depth 1 $TemplateRepo $Project
+cd $Project
+
 Remove-Item -Recurse -Force .git
+
 git init
+git branch -M main
 git add .
 git commit -m "chore(harness): initialize project harness"
 
+$User = gh api user --jq .login
 
-그다음 새 GitHub repo를 만들고 연결합니다.
-git remote add origin https://github.com/DOSINOGBU/My-New-Project.git
-git branch -M main
-git push -u origin main
+gh repo create "$User/$Project" `
+  --private `
+  --source . `
+  --remote origin `
+  --push

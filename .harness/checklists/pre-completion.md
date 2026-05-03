@@ -7,4 +7,7 @@
 - [ ] 실패 로그가 있었다면 마지막 줄만 보지 않고 원인 맥락을 확인했습니다.
 - [ ] 같은 파일을 반복 수정하거나 같은 검증이 반복 실패했다면 접근을 재검토했습니다.
 - [ ] run log를 남겨야 하는 작업인지 판단했습니다.
+- [ ] 완료 보고에 CodeHealth 섹션을 포함하고 errors, warnings, intentionally accepted warnings를 분리했습니다.
+- [ ] 완료 보고에 결과 확인 방법을 포함했습니다. (preview path, export command, UI location 중 해당 항목)
+- [ ] Streamlit/CLI 등 혼합 프로젝트라면 현재 검증이 CLI 검증인지, UI 검증인지, 둘 다인지 명시했습니다.
 - [ ] 완료 보고에 변경 요약, 검증 결과, 남은 리스크, 사용자 결정 사항을 포함했습니다.

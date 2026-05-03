@@ -37,6 +37,13 @@
 - `bootstrap-agent-context.ps1`는 읽기 전용이어야 하며, 출력은 작업 시작 컨텍스트로만 사용합니다.
 - 완료 전에는 `.harness/checklists/pre-completion.md`로 원래 요청과 검증 결과를 다시 비교합니다.
 
+## CodeHealth Warning Policy
+
+- `code-health-repeated-line` warning은 제품 코드에서는 helper 추출을 우선 검토합니다.
+- 테스트 setup, fixture, table-driven case의 반복은 독립적인 실패 위치와 읽기 쉬움을 보존하는 경우 수용할 수 있습니다.
+- warning을 수용할 때는 완료 보고의 `CodeHealth` 섹션에 `intentionally accepted warnings`로 남기고, 수용 이유를 한 줄로 적습니다.
+- `code-health-large-file` warning은 `docs/CODE_STYLE.md`의 분리 후보 단위를 기준으로 책임 분리 필요성을 판단합니다.
+
 ## Manual Scenario Template
 
 ```text

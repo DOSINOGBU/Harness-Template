@@ -7,8 +7,9 @@
 1. `active/`에 계획 파일을 만듭니다.
 2. 목표, 범위, 의존성, 품질 게이트, 검증 방법, 체크리스트를 작성합니다.
 3. 작업 중 발견한 결정과 리스크를 업데이트합니다.
-4. 기능 동작 완료와 품질 승인 완료를 분리해서 기록합니다.
-5. 완료 후 `completed/`로 이동합니다.
+4. 긴 API 작업이나 자동 파이프라인이면 checkpoint, resume, time budget, candidate limit를 기록합니다.
+5. 기능 동작 완료와 품질 승인 완료를 분리해서 기록합니다.
+6. 완료 후 `completed/`로 이동합니다.
 
 ## Status
 
@@ -83,6 +84,16 @@ Ready
 - Representative sample:
 - Approval:
 
+## Long Running Work
+
+- Required: yes/no
+- Checkpoint:
+- Resume:
+- Per-call timeout:
+- Total time budget:
+- Candidate limit:
+- Acceptance mode: all candidates completed / minimum valid candidates secured
+
 ## Steps
 
 - [ ] 
@@ -98,5 +109,7 @@ Ready
 
 - Functional status:
 - Quality approval:
+- Valid candidates:
+- Remaining candidates:
 - Follow-up repair plan:
 ```

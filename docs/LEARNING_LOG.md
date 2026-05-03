@@ -7,6 +7,8 @@
 | 날짜 | 반복된 실수 | 발생 작업 | 원인 | 현재 대응 | 자동화 후보 |
 |---|---|---|---|---|---|
 | 예시 | 검증 없이 완료 보고 | 기능 구현 | 완료 전 점검 부재 | checklist | pre-completion hook |
+| 2026-05-01 | 결과 확인 위치와 CLI/UI 검증 범위 누락 | 기능 구현 완료 보고 | completion 보고 항목이 검증 결과 중심으로만 구성됨 | pre-completion checklist/prompt | completion report hook |
+| 2026-05-01 | 긴 API 작업의 재개 기준과 부분 완료 기준 누락 | 자동 파이프라인 | checkpoint, resume, budget, acceptance mode가 계획 기본값이 아님 | reliability/plan checklist | long-job plan validator |
 
 ## Input Sources
 
