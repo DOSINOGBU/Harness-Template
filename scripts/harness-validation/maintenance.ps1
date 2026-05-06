@@ -201,6 +201,219 @@ function Get-PlaceholderCount {
     return $count
 }
 
+function Get-MarkdownHeadingsWithLocation {
+    param(
+        [string]$Content
+    )
+
+    $matches = [regex]::Matches($Content, '(?m)^(?<Hashes>#{1,6})\s+(?<Title>.+?)\s*$')
+    $headings = @()
+
+    foreach ($match in $matches) {
+        $lineNumber = ([regex]::Matches($Content.Substring(0, $match.Index), "`n")).Count + 1
+
+        $headings += [pscustomobject]@{
+            Index = $match.Index
+            Level = $match.Groups["Hashes"].Value.Length
+            Title = $match.Groups["Title"].Value.Trim()
+            Line = $lineNumber
+        }
+    }
+
+    return @($headings)
+}
+
+function Add-ExecPlanFormatFinding {
+    param(
+        [string]$Path,
+        [string]$Reason,
+        [string]$Heading,
+        [int]$ExpectedLevel,
+        [Nullable[int]]$ActualLevel,
+        [Nullable[int]]$Line,
+        [bool]$Strict
+    )
+
+    $metadata = @{
+        path = $Path
+        reason = $Reason
+        heading = $Heading
+        expectedLevel = $ExpectedLevel
+        strict = $Strict
+    }
+
+    if ($null -ne $ActualLevel) {
+        $metadata.actualLevel = $ActualLevel
+    }
+
+    if ($null -ne $Line) {
+        $metadata.line = $Line
+    }
+
+    Add-MaintenanceFinding -Check "maintenance-exec-plan-format" -Metadata $metadata
+}
+
+function Test-ExecPlanHeadingSequence {
+    param(
+        [object[]]$Headings,
+        [string[]]$ExpectedTitles,
+        [int]$ExpectedLevel,
+        [string]$Path,
+        [bool]$Strict
+    )
+
+    $findingCount = 0
+    $previousIndex = -1
+
+    foreach ($expectedTitle in $ExpectedTitles) {
+        $matches = @($Headings | Where-Object { $_.Title -ceq $expectedTitle })
+
+        if ($matches.Count -eq 0) {
+            $findingCount += 1
+            Add-ExecPlanFormatFinding -Path $Path -Reason "missing_heading" -Heading $expectedTitle -ExpectedLevel $ExpectedLevel -ActualLevel $null -Line $null -Strict:$Strict
+            continue
+        }
+
+        $heading = $matches[0]
+
+        if ($heading.Level -ne $ExpectedLevel) {
+            $findingCount += 1
+            Add-ExecPlanFormatFinding -Path $Path -Reason "wrong_heading_depth" -Heading $expectedTitle -ExpectedLevel $ExpectedLevel -ActualLevel $heading.Level -Line $heading.Line -Strict:$Strict
+        }
+
+        if ($heading.Index -lt $previousIndex) {
+            $findingCount += 1
+            Add-ExecPlanFormatFinding -Path $Path -Reason "heading_order" -Heading $expectedTitle -ExpectedLevel $ExpectedLevel -ActualLevel $heading.Level -Line $heading.Line -Strict:$Strict
+            continue
+        }
+
+        $previousIndex = $heading.Index
+    }
+
+    return $findingCount
+}
+
+function Test-ExecPlanHeadingSet {
+    param(
+        [object[]]$Headings,
+        [string[]]$ExpectedTitles,
+        [int]$ExpectedLevel,
+        [string]$Path,
+        [bool]$Strict
+    )
+
+    $findingCount = 0
+    $levelHeadings = @($Headings | Where-Object { $_.Level -eq $ExpectedLevel })
+
+    foreach ($heading in $levelHeadings) {
+        if ($ExpectedTitles -cnotcontains $heading.Title) {
+            $findingCount += 1
+            Add-ExecPlanFormatFinding -Path $Path -Reason "unexpected_heading" -Heading $heading.Title -ExpectedLevel $ExpectedLevel -ActualLevel $heading.Level -Line $heading.Line -Strict:$Strict
+        }
+    }
+
+    foreach ($expectedTitle in $ExpectedTitles) {
+        $matches = @($levelHeadings | Where-Object { $_.Title -ceq $expectedTitle } | Sort-Object Index)
+
+        if ($matches.Count -le 1) {
+            continue
+        }
+
+        foreach ($heading in @($matches | Select-Object -Skip 1)) {
+            $findingCount += 1
+            Add-ExecPlanFormatFinding -Path $Path -Reason "duplicate_heading" -Heading $heading.Title -ExpectedLevel $ExpectedLevel -ActualLevel $heading.Level -Line $heading.Line -Strict:$Strict
+        }
+    }
+
+    return $findingCount
+}
+
+function ConvertFrom-CodePoints {
+    param(
+        [int[]]$CodePoints
+    )
+
+    return -join ($CodePoints | ForEach-Object { [char]$_ })
+}
+
+function Test-ExecPlanFormat {
+    param(
+        [bool]$Strict
+    )
+
+    $requiredHeadings = @(
+        "Status",
+        "Goal",
+        "Scope",
+        "Depends On",
+        "Blocks",
+        "Parallel Work",
+        "Quality Gate",
+        "Long Running Work",
+        "Steps",
+        "Validation",
+        "Risks",
+        "Result"
+    )
+    $requiredResultHeadings = @(
+        (ConvertFrom-CodePoints -CodePoints @(50836, 52397, 32, 54869, 51064)),
+        (ConvertFrom-CodePoints -CodePoints @(48320, 44221, 32, 49324, 54637)),
+        (ConvertFrom-CodePoints -CodePoints @(44160, 51613)),
+        (ConvertFrom-CodePoints -CodePoints @(44208, 44284, 32, 54869, 51064)),
+        "CodeHealth",
+        (ConvertFrom-CodePoints -CodePoints @(47532, 49828, 53356, 50752, 32, 45796, 51020, 32, 54032, 45800))
+    )
+    $planFolders = @(
+        "docs/exec-plans/active",
+        "docs/exec-plans/completed"
+    )
+    $files = @()
+
+    foreach ($folder in $planFolders) {
+        $folderPath = Resolve-RepoRelativePath -RelativePath $folder
+
+        if (-not (Test-Path -LiteralPath $folderPath)) {
+            continue
+        }
+
+        $files += @(Get-ChildItem -LiteralPath $folderPath -Filter "*.md" -File)
+    }
+
+    $findingCount = 0
+
+    foreach ($file in $files) {
+        $relativePath = Get-RepoRelativePath -FullPath $file.FullName
+        $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $file.FullName
+        $headings = @(Get-MarkdownHeadingsWithLocation -Content $content)
+
+        $findingCount += Test-ExecPlanHeadingSequence -Headings $headings -ExpectedTitles $requiredHeadings -ExpectedLevel 2 -Path $relativePath -Strict:$Strict
+        $findingCount += Test-ExecPlanHeadingSet -Headings $headings -ExpectedTitles $requiredHeadings -ExpectedLevel 2 -Path $relativePath -Strict:$Strict
+
+        $resultHeading = @($headings | Where-Object { $_.Title -ceq "Result" -and $_.Level -eq 2 } | Sort-Object Index | Select-Object -First 1)
+
+        if ($resultHeading.Count -eq 0) {
+            continue
+        }
+
+        $resultStart = $resultHeading[0].Index
+        $nextTopHeading = @($headings |
+            Where-Object { $_.Level -eq 2 -and $_.Index -gt $resultStart } |
+            Sort-Object Index |
+            Select-Object -First 1)
+        $resultEnd = if ($nextTopHeading.Count -gt 0) { $nextTopHeading[0].Index } else { [int]::MaxValue }
+        $resultHeadings = @($headings | Where-Object { $_.Index -gt $resultStart -and $_.Index -lt $resultEnd })
+
+        $findingCount += Test-ExecPlanHeadingSequence -Headings $resultHeadings -ExpectedTitles $requiredResultHeadings -ExpectedLevel 3 -Path $relativePath -Strict:$Strict
+        $findingCount += Test-ExecPlanHeadingSet -Headings $resultHeadings -ExpectedTitles $requiredResultHeadings -ExpectedLevel 3 -Path $relativePath -Strict:$Strict
+    }
+
+    if ($findingCount -eq 0) {
+        Write-HarnessLog -Check "maintenance-exec-plan-format" -Status "success" -Metadata @{
+            scanned = $files.Count
+        }
+    }
+}
+
 function Test-ExecPlanUsage {
     param(
         [bool]$Strict
@@ -248,6 +461,7 @@ function Test-MaintenanceDrift {
     Test-UnregisteredHarnessFiles -SectionName "Checklists" -Folder ".harness/checklists" -Check "maintenance-unregistered-checklist" -Strict:$Strict
     Test-UnregisteredHarnessFiles -SectionName "Prompts" -Folder ".harness/prompts" -Check "maintenance-unregistered-prompt" -Strict:$Strict
     Test-StaleActivePlans -Strict:$Strict
+    Test-ExecPlanFormat -Strict:$Strict
     Test-GeneratedTodoTimestamps -Strict:$Strict
     Test-PlaceholderDensity -Strict:$Strict
     Test-ExecPlanUsage -Strict:$Strict

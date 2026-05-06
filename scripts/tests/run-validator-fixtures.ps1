@@ -2,6 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $validatorPath = Resolve-Path (Join-Path $PSScriptRoot "..\validate-harness.ps1")
 $bootstrapPath = Resolve-Path (Join-Path $PSScriptRoot "..\init-testing-commands.ps1")
+$execPlanTemplatePath = Resolve-Path (Join-Path $PSScriptRoot "..\..\docs\exec-plans\template.md")
 $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ("harness-validator-fixtures-" + [guid]::NewGuid().ToString("N"))
 
 function Write-FixtureLog {
@@ -115,6 +116,10 @@ function New-MinimalFixture {
     return $root
 }
 
+function Get-StandardExecPlanContent {
+    return Get-Content -Raw -Encoding UTF8 -LiteralPath $execPlanTemplatePath
+}
+
 function Invoke-Validator {
     param(
         [string]$RepoRoot,
@@ -203,6 +208,52 @@ try {
 
     if ($placeholderResult.Output -notmatch "maintenance-placeholder-density") {
         throw "placeholder-patterns expected maintenance-placeholder-density output"
+    }
+
+    $standardPlanFixture = New-MinimalFixture -Name "standard-exec-plan"
+    New-TextFile -Path (Join-Path $standardPlanFixture "docs/exec-plans/active/01a-standard.md") -Content (Get-StandardExecPlanContent)
+    $standardPlanResult = Invoke-Validator -RepoRoot $standardPlanFixture -Arguments @("-Maintenance")
+    Assert-ExitCode -Name "standard-exec-plan-format" -Result $standardPlanResult -ExpectedExitCode 0
+
+    if ($standardPlanResult.Output -notmatch "maintenance-exec-plan-format success") {
+        throw "standard-exec-plan-format expected maintenance-exec-plan-format success output"
+    }
+
+    $missingHeadingFixture = New-MinimalFixture -Name "missing-exec-plan-heading"
+    $missingHeadingPlan = (Get-StandardExecPlanContent) -replace "(?ms)^## Parallel Work\s+.*?(?=^## Quality Gate)", ""
+    New-TextFile -Path (Join-Path $missingHeadingFixture "docs/exec-plans/active/01a-missing-heading.md") -Content $missingHeadingPlan
+    $missingHeadingResult = Invoke-Validator -RepoRoot $missingHeadingFixture -Arguments @("-Maintenance")
+    Assert-ExitCode -Name "missing-exec-plan-heading" -Result $missingHeadingResult -ExpectedExitCode 0
+
+    if ($missingHeadingResult.Output -notmatch "maintenance-exec-plan-format" -or $missingHeadingResult.Output -notmatch "missing_heading") {
+        throw "missing-exec-plan-heading expected maintenance-exec-plan-format missing_heading output"
+    }
+
+    $missingHeadingProjectResult = Invoke-Validator -RepoRoot $missingHeadingFixture -Arguments @("-Mode", "Project", "-Maintenance")
+    Assert-ExitCode -Name "missing-exec-plan-heading-project" -Result $missingHeadingProjectResult -ExpectedExitCode 1
+
+    if ($missingHeadingProjectResult.Output -notmatch "maintenance-exec-plan-format failed") {
+        throw "missing-exec-plan-heading-project expected maintenance-exec-plan-format failed output"
+    }
+
+    $misorderedHeadingFixture = New-MinimalFixture -Name "misordered-exec-plan-heading"
+    $misorderedHeadingPlan = (Get-StandardExecPlanContent) -replace "(?m)^## Goal\r?\n\r?\n## Scope", "## Scope`n`n## Goal"
+    New-TextFile -Path (Join-Path $misorderedHeadingFixture "docs/exec-plans/active/01a-misordered-heading.md") -Content $misorderedHeadingPlan
+    $misorderedHeadingResult = Invoke-Validator -RepoRoot $misorderedHeadingFixture -Arguments @("-Maintenance")
+    Assert-ExitCode -Name "misordered-exec-plan-heading" -Result $misorderedHeadingResult -ExpectedExitCode 0
+
+    if ($misorderedHeadingResult.Output -notmatch "maintenance-exec-plan-format" -or $misorderedHeadingResult.Output -notmatch "heading_order") {
+        throw "misordered-exec-plan-heading expected maintenance-exec-plan-format heading_order output"
+    }
+
+    $extraHeadingFixture = New-MinimalFixture -Name "extra-exec-plan-heading"
+    $extraHeadingPlan = (Get-StandardExecPlanContent) -replace "(?m)^## Validation", "## Extra Heading`n`n## Validation"
+    New-TextFile -Path (Join-Path $extraHeadingFixture "docs/exec-plans/active/01a-extra-heading.md") -Content $extraHeadingPlan
+    $extraHeadingResult = Invoke-Validator -RepoRoot $extraHeadingFixture -Arguments @("-Maintenance")
+    Assert-ExitCode -Name "extra-exec-plan-heading" -Result $extraHeadingResult -ExpectedExitCode 0
+
+    if ($extraHeadingResult.Output -notmatch "maintenance-exec-plan-format" -or $extraHeadingResult.Output -notmatch "unexpected_heading") {
+        throw "extra-exec-plan-heading expected maintenance-exec-plan-format unexpected_heading output"
     }
 
     $staleFixture = New-MinimalFixture -Name "stale-plan"

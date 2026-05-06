@@ -347,7 +347,7 @@ function New-HarnessDocsCommitMessage {
         return "docs(validation): record $topic"
     }
 
-    return "docs: update project documentation"
+    return "docs: refine project documentation"
 }
 
 function Get-HarnessCurrentBranch {

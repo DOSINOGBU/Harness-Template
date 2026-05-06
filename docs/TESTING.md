@@ -37,6 +37,19 @@
 - `bootstrap-agent-context.ps1`는 읽기 전용이어야 하며, 출력은 작업 시작 컨텍스트로만 사용합니다.
 - 완료 전에는 `.harness/checklists/pre-completion.md`로 원래 요청과 검증 결과를 다시 비교합니다.
 
+## Regression Verification Policy
+
+변경 대상 기능의 테스트만 통과해도 완료로 보지 않습니다.
+변경이 기존 PRD 기능 계약에 닿을 수 있으면 `docs/PRODUCT_CONTEXT.md`의 `PRD Feature Contract`에서 영향받는 기능을 고르고 대표 시나리오를 확인합니다.
+
+- 전체 PRD 기능 테스트는 `Contract status=Current`인 기능만 대상으로 실행합니다.
+- 전체 PRD 기능 테스트 전에는 수정된 기능의 `Current expected behavior`와 `Regression scenario`가 최신인지 확인합니다.
+- 수정된 기능 계약이 `Needs update`이면 전체 PRD 기능 정상 작동 테스트를 완료로 선언하지 않습니다.
+- UI, shared component, shared state, API, data model, navigation, auth/permission 변경은 기존 PRD 기능 회귀 검증 대상입니다.
+- 영향받는 기존 기능마다 자동 테스트 또는 수동 시나리오 중 하나를 실행합니다.
+- 자동 테스트가 없으면 아래 `Manual Scenario Template`으로 Expected/Observed를 남깁니다.
+- 영향받는 기능이 없다고 판단한 경우에도 그 이유를 완료 보고의 `검증` 또는 exec-plan `Validation`에 남깁니다.
+
 ## CodeHealth Warning Policy
 
 - `code-health-repeated-line` warning은 제품 코드에서는 helper 추출을 우선 검토합니다.

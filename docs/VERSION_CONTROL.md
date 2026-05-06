@@ -96,6 +96,21 @@ chore(repo): update gitignore
 `scripts/recommend-version-control.ps1 -VerificationStatus Passed`가 `Commit: auto_split_recommended`를 출력하면 `scripts/commit-work-unit.ps1`로 분리 커밋할 수 있습니다.
 코드 변경의 목적을 확정할 수 없으면 메시지를 추측하지 않고 커밋을 중단합니다.
 
+## Direct Work Unit Commit
+
+exec-plan 없이 구두로 처리한 작은 수정도 변경 목적이 하나이고 검증이 통과하면 자동 커밋 대상입니다.
+자동 커밋은 자동 push와 다르며, push는 Auto Push Policy를 따릅니다.
+
+추천 결과별 처리:
+
+- `Commit: auto_recommended`: `scripts/commit-work-unit.ps1 -VerificationStatus Passed -Type <type> -Scope <scope> -Summary "<summary>"`로 단일 기능/테스트 커밋을 만듭니다.
+- `Commit: auto_split_recommended`: 기능/테스트 커밋과 exec-plan/validation 문서 커밋을 분리합니다.
+- `Commit: docs_recommended`: docs-only 커밋을 만듭니다. 기본 메시지는 `docs: refine project documentation`이고, 더 구체적인 메시지가 있으면 `-DocsMessage`로 넘깁니다.
+- `Commit: hold`: 자동 커밋하지 않고 `CommitReason`을 완료 보고에 남깁니다.
+
+구두 수정이라도 여러 목적이 섞였거나 code/test 변경과 일반 문서 변경이 함께 있으면 자동 커밋하지 않습니다.
+사용자가 "커밋하지 마", "수정만 해", "커밋은 내가 할게"라고 명시하면 추천 결과와 무관하게 자동 커밋하지 않습니다.
+
 검증 상태별 기준:
 
 - `Passed`: 기능/테스트 커밋과 문서 커밋 모두 허용

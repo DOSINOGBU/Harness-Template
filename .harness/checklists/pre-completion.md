@@ -7,7 +7,21 @@
 - [ ] 실패 로그가 있었다면 마지막 줄만 보지 않고 원인 맥락을 확인했습니다.
 - [ ] 같은 파일을 반복 수정하거나 같은 검증이 반복 실패했다면 접근을 재검토했습니다.
 - [ ] run log를 남겨야 하는 작업인지 판단했습니다.
-- [ ] 완료 보고에 CodeHealth 섹션을 포함하고 errors, warnings, intentionally accepted warnings를 분리했습니다.
-- [ ] 완료 보고에 결과 확인 방법을 포함했습니다. (preview path, export command, UI location 중 해당 항목)
-- [ ] Streamlit/CLI 등 혼합 프로젝트라면 현재 검증이 CLI 검증인지, UI 검증인지, 둘 다인지 명시했습니다.
-- [ ] 완료 보고에 변경 요약, 검증 결과, 남은 리스크, 사용자 결정 사항을 포함했습니다.
+- [ ] 기능 추가 또는 기능 동작 변경이라면 코드 변경 전에 active exec-plan을 만들거나 갱신했는지 확인했습니다.
+- [ ] 작업 중 발견한 새 기능 범위를 plan 없이 바로 구현하지 않았는지 확인했습니다.
+- [ ] exec-plan의 `Depends On`, `Blocks`, `Parallel Work`를 확인했습니다.
+- [ ] `Partial` 또는 `Blocked` 상태라면 독립 완료 범위, 보류 범위, 보류 이유, 재개 조건을 기록했습니다.
+- [ ] 변경이 기존 PRD 기능 계약에 닿는지 확인하고 영향받은 기능을 기록했습니다.
+- [ ] 기능 동작, UI 흐름, API/data, 권한/네비게이션이 바뀐 Feature ID의 `Current expected behavior`, `Regression scenario`, `Last updated by`, `Contract status`를 최신화했습니다.
+- [ ] 전체 PRD 기능 테스트를 실행했다면 `Contract status=Current`인 기능만 대상으로 삼았습니다.
+- [ ] 수정된 기능 계약이 `Needs update`인 상태에서는 전체 PRD 기능 정상 작동 테스트를 완료로 선언하지 않았습니다.
+- [ ] 영향받은 기존 PRD 기능의 자동 테스트 또는 수동 회귀 시나리오를 실행했습니다.
+- [ ] 검증 상태에 따라 `scripts/recommend-version-control.ps1`의 `Commit` 판단을 확인했습니다.
+- [ ] exec-plan 없이 구두로 처리한 direct work unit도 자동 커밋 대상인지 확인하고, `hold`이면 이유를 기록했습니다.
+- [ ] 완료 보고가 표준 섹션 순서를 따릅니다: 요청 확인, 변경 사항, 검증, 결과 확인, CodeHealth, 리스크와 다음 판단.
+- [ ] `요청 확인`에 원래 요청과 최종 결과 충족 여부를 적었습니다.
+- [ ] `변경 사항`에 변경 파일과 변경 의도를 적었습니다.
+- [ ] `검증`에 실행한 검증, 실행하지 못한 검증의 이유와 대체 확인, 검증 표면(CLI/UI/둘 다)을 적었습니다.
+- [ ] `결과 확인`에 preview path, export command, UI location 등 사용자가 결과물을 확인할 위치를 적었습니다.
+- [ ] `CodeHealth`에 errors, warnings, intentionally accepted warnings를 분리했습니다.
+- [ ] `리스크와 다음 판단`에 남은 리스크, 확인하지 못한 부분, 사용자 결정 사항을 적었습니다.

@@ -97,13 +97,14 @@ if ($summaryObject.Other.Count -gt 0) {
     throw "Unrelated changes prevent automatic work-unit commit: $unrelated"
 }
 
-if ($summaryObject.DocsOther.Count -gt 0) {
+if ($summaryObject.DocsOther.Count -gt 0 -and ($summaryObject.Feature.Count -gt 0 -or $summaryObject.WorkUnitDocs.Count -gt 0)) {
     $mixedDocs = @($summaryObject.DocsOther) -join ", "
     throw "Other documentation or repo hygiene changes prevent automatic work-unit commit: $mixedDocs"
 }
 
 $hasFeatureChanges = $summaryObject.Feature.Count -gt 0
 $hasWorkUnitDocs = $summaryObject.WorkUnitDocs.Count -gt 0
+$hasDocsOtherChanges = $summaryObject.DocsOther.Count -gt 0
 
 if ($VerificationStatus -eq "Failed") {
     throw "VerificationStatus=Failed prevents automatic commit."
@@ -113,8 +114,8 @@ if ($hasFeatureChanges -and $VerificationStatus -ne "Passed") {
     throw "Feature/test changes require VerificationStatus=Passed before commit."
 }
 
-if (-not $hasFeatureChanges -and -not $hasWorkUnitDocs) {
-    throw "No feature/test or work-unit documentation changes were found."
+if (-not $hasFeatureChanges -and -not $hasWorkUnitDocs -and -not $hasDocsOtherChanges) {
+    throw "No feature/test or documentation changes were found."
 }
 
 if ($hasFeatureChanges) {
@@ -142,6 +143,21 @@ if ($hasWorkUnitDocs) {
     }
 }
 
+if ($hasDocsOtherChanges) {
+    $docsCommitMessage = $DocsMessage
+
+    if ([string]::IsNullOrWhiteSpace($docsCommitMessage)) {
+        $docsCommitMessage = New-HarnessDocsCommitMessage -Summary $summaryObject
+    }
+
+    Assert-CleanCommitMessage -Message $docsCommitMessage -Kind "Docs"
+    Invoke-CommitPathSet -Paths $summaryObject.DocsOther -Message $docsCommitMessage
+    Write-WorkUnitLog -Status "committed_docs" -Metadata @{
+        message = $docsCommitMessage
+        paths = ($summaryObject.DocsOther -join ", ")
+    }
+}
+
 $remainingPaths = @(Get-HarnessChangedPaths -RepoRoot $repoRootPath)
 
 if ($remainingPaths.Count -gt 0) {
@@ -155,6 +171,10 @@ if ($hasFeatureChanges) {
 }
 
 if ($hasWorkUnitDocs) {
+    $commitCount += 1
+}
+
+if ($hasDocsOtherChanges) {
     $commitCount += 1
 }
 

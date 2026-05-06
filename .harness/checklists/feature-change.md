@@ -2,7 +2,23 @@
 
 - [ ] 관련 제품 맥락과 기능 명세를 확인했습니다.
 - [ ] 기존 구조와 데이터 흐름을 확인했습니다.
+- [ ] 기능 코드 변경 전에 관련 active exec-plan을 만들거나 기존 active plan을 갱신했습니다.
+- [ ] 새 기능 plan을 만들기 전에 `docs/exec-plans/active/`와 `docs/exec-plans/completed/`의 기존 plan을 확인했습니다.
+- [ ] 작업 중 발견한 새 기능 범위를 바로 구현하지 않고 plan의 `Scope`, `Steps`, `Depends On`, `Parallel Work`에 먼저 반영했습니다.
+- [ ] 새 exec-plan을 만들거나 갱신했다면 `docs/exec-plans/template.md`의 heading 이름, 순서, depth를 유지했습니다.
+- [ ] 관련 parent plan이 있으면 새 top-level 번호가 아니라 `01a`, `01b` 같은 하위 plan으로 분리했습니다.
+- [ ] 새 top-level 번호를 사용했다면 완전히 새로운 기능임을 확인하고 `Scope`에 기존 plan과 분리되는 이유를 적었습니다.
+- [ ] 연결 여부가 애매하면 새 top-level 번호가 아니라 가장 가까운 parent의 하위 plan으로 두었습니다.
+- [ ] 큰 기능은 한 AI가 맡을 수 있는 기능 단위 plan으로 나눴습니다.
+- [ ] `Parallel Work`에 병행 가능 여부, 독립 범위, 보류 범위, 계약 의존성, 재개 조건, 소유 경계를 적었습니다.
+- [ ] 선행 plan 계약이 미완료이면 독립 가능한 범위와 보류할 범위를 분리했습니다.
+- [ ] 독립 구현 범위가 없다면 구현하지 않고 `Blocked`로 보고하도록 계획했습니다.
 - [ ] 이 기능의 산출물이 다른 기능의 입력인지 확인했습니다.
+- [ ] `docs/PRODUCT_CONTEXT.md`의 `PRD Feature Contract`에서 영향받을 수 있는 기존 PRD 기능을 확인했습니다.
+- [ ] 기능 동작, UI 흐름, API/data, 권한/네비게이션이 바뀌었다면 관련 Feature ID의 `Current expected behavior`와 `Regression scenario`를 최신화했습니다.
+- [ ] 수정된 기능 계약의 `Last updated by`와 `Contract status`를 갱신했습니다.
+- [ ] `Needs update` 상태인 수정 기능이 있다면 전체 PRD 기능 테스트를 완료로 선언하지 않았습니다.
+- [ ] UI, shared component/state, API, data model, navigation, auth/permission 변경이라면 기존 기능 대표 회귀 시나리오를 계획했습니다.
 - [ ] 입력 산출물의 품질 기준이 먼저 정의되어 있습니다.
 - [ ] 승인/검수 기준이 필요한 기능이면 구현 전에 기준을 문서화했습니다.
 - [ ] 실제 샘플 또는 대표 데이터로 품질 확인 계획이 있습니다.
@@ -17,5 +33,7 @@
 - [ ] 500줄 이상 파일에 코드를 추가했다면 분리 계획이나 예외 사유를 기록했습니다.
 - [ ] 800줄 이상 파일에는 새 기능을 추가하지 않았습니다.
 - [ ] 관련 테스트 또는 수동 검증을 실행했습니다.
+- [ ] 전체 PRD 기능 테스트를 실행했다면 `Contract status=Current`인 기능 계약만 기준으로 삼았습니다.
+- [ ] 변경 대상 기능뿐 아니라 영향받은 기존 PRD 기능의 회귀 시나리오를 검증했습니다.
 - [ ] 검증 결과와 실행하지 못한 검증을 기록했습니다.
 - [ ] 새로 생긴 규칙이나 용어를 문서에 반영했습니다.

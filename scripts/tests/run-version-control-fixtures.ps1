@@ -237,12 +237,51 @@ try {
     Assert-ExitCode -Name "recommend-chore-type" -Result $choreTypeResult -ExpectedExitCode 0
     Assert-OutputMatches -Name "recommend-chore-type-message" -Result $choreTypeResult -Pattern "chore\(repo\): tighten worktree hygiene"
 
+    $directFeatureFixture = New-VersionControlFixture -Name "direct-feature"
+    New-TextFile -Path (Join-Path $directFeatureFixture "src/direct.ps1") -Content "'direct'`n"
+    $directFeatureRecommend = Invoke-Recommend -RepoRoot $directFeatureFixture -Arguments @("-VerificationStatus", "Passed", "-Type", "fix", "-Scope", "direct", "-Summary", "adjust direct handler")
+    Assert-ExitCode -Name "recommend-direct-feature" -Result $directFeatureRecommend -ExpectedExitCode 0
+    Assert-OutputMatches -Name "recommend-direct-feature" -Result $directFeatureRecommend -Pattern "Commit: auto_recommended"
+
+    $directFeatureCommit = Invoke-CommitWorkUnit -RepoRoot $directFeatureFixture -Arguments @("-VerificationStatus", "Passed", "-Type", "fix", "-Scope", "direct", "-Summary", "adjust direct handler")
+    Assert-ExitCode -Name "commit-direct-feature" -Result $directFeatureCommit -ExpectedExitCode 0
+    $directFeatureSubject = @(Invoke-CheckedGit -RepoRoot $directFeatureFixture -Arguments @("log", "--format=%s", "-1"))
+    $directFeatureStatus = @(Invoke-CheckedGit -RepoRoot $directFeatureFixture -Arguments @("status", "--short"))
+
+    if ($directFeatureSubject[0] -ne "fix(direct): adjust direct handler") {
+        throw "commit-direct-feature expected direct feature commit message, got: $($directFeatureSubject -join ' | ')"
+    }
+
+    if ($directFeatureStatus.Count -ne 0) {
+        throw "commit-direct-feature expected clean working tree, got: $($directFeatureStatus -join ' | ')"
+    }
+
     $repoHygieneFixture = New-VersionControlFixture -Name "repo-hygiene"
     New-TextFile -Path (Join-Path $repoHygieneFixture ".editorconfig") -Content "root = true`n"
     New-TextFile -Path (Join-Path $repoHygieneFixture ".gitattributes") -Content "* text=auto`n"
     $repoHygieneResult = Invoke-Recommend -RepoRoot $repoHygieneFixture -Arguments @("-VerificationStatus", "Passed")
     Assert-ExitCode -Name "recommend-repo-hygiene-docs" -Result $repoHygieneResult -ExpectedExitCode 0
     Assert-OutputMatches -Name "recommend-repo-hygiene-docs" -Result $repoHygieneResult -Pattern "Commit: docs_recommended"
+    Assert-OutputMatches -Name "recommend-repo-hygiene-docs-message" -Result $repoHygieneResult -Pattern "docs: refine project documentation"
+
+    $directDocsFixture = New-VersionControlFixture -Name "direct-docs"
+    New-TextFile -Path (Join-Path $directDocsFixture "docs/USAGE.md") -Content "# Usage`n"
+    $directDocsRecommend = Invoke-Recommend -RepoRoot $directDocsFixture -Arguments @("-VerificationStatus", "Passed")
+    Assert-ExitCode -Name "recommend-direct-docs" -Result $directDocsRecommend -ExpectedExitCode 0
+    Assert-OutputMatches -Name "recommend-direct-docs" -Result $directDocsRecommend -Pattern "Commit: docs_recommended"
+
+    $directDocsCommit = Invoke-CommitWorkUnit -RepoRoot $directDocsFixture -Arguments @("-VerificationStatus", "Passed")
+    Assert-ExitCode -Name "commit-direct-docs" -Result $directDocsCommit -ExpectedExitCode 0
+    $directDocsSubject = @(Invoke-CheckedGit -RepoRoot $directDocsFixture -Arguments @("log", "--format=%s", "-1"))
+    $directDocsStatus = @(Invoke-CheckedGit -RepoRoot $directDocsFixture -Arguments @("status", "--short"))
+
+    if ($directDocsSubject[0] -ne "docs: refine project documentation") {
+        throw "commit-direct-docs expected direct docs commit message, got: $($directDocsSubject -join ' | ')"
+    }
+
+    if ($directDocsStatus.Count -ne 0) {
+        throw "commit-direct-docs expected clean working tree, got: $($directDocsStatus -join ' | ')"
+    }
 
     $blockedFixture = New-VersionControlFixture -Name "blocked-env"
     New-TextFile -Path (Join-Path $blockedFixture ".env") -Content "TOKEN=secret`n"
