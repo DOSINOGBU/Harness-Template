@@ -157,6 +157,17 @@ function Import-HarnessConfig {
         }
     }
 
+    $hygiene = $config.hygiene
+    if ($null -ne $hygiene) {
+        Set-PositiveIntegerConfigValue -Key "hygieneMaxUncommittedFiles" -Value $hygiene.maxUncommittedFiles
+        Set-PositiveIntegerConfigValue -Key "hygieneMaxUntrackedFiles" -Value $hygiene.maxUntrackedFiles
+        Set-PositiveIntegerConfigValue -Key "hygieneScratchThreshold" -Value $hygiene.scratchThreshold
+        Set-StringArrayConfigValue -Key "hygieneScratchPatterns" -Value $hygiene.scratchPatterns
+        Set-PositiveIntegerConfigValue -Key "hygieneExceptionTtlDays" -Value $hygiene.exceptionTtlDays
+        Set-PositiveIntegerConfigValue -Key "hygieneBranchBackupCommits" -Value $hygiene.branchBackupCommits
+        Set-PositiveIntegerConfigValue -Key "hygienePlanDriftMinFeatureCommits" -Value $hygiene.planDriftMinFeatureCommits
+    }
+
     $versionControl = $config.versionControl
     if ($null -ne $versionControl) {
         Set-BooleanConfigValue -Key "autoCommitWorkUnit" -Value $versionControl.autoCommitWorkUnit

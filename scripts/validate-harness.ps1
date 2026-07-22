@@ -132,6 +132,20 @@ $script:harnessConfig = @{
         "**/tokens.css",
         "**/*.tokens.*"
     )
+    hygieneMaxUncommittedFiles = 20
+    hygieneMaxUntrackedFiles = 30
+    hygieneScratchThreshold = 10
+    hygieneScratchPatterns = @(
+        "_tmp_*",
+        "tmp_*",
+        "*.tmp",
+        "scratch-*",
+        "_validate_*",
+        "_verify_*"
+    )
+    hygieneExceptionTtlDays = 30
+    hygieneBranchBackupCommits = 5
+    hygienePlanDriftMinFeatureCommits = 3
     uiConformanceForbiddenPatterns = @(
         @{ pattern = '#[0-9a-fA-F]{6}\b'; reason = "hardcoded_hex_color" },
         @{ pattern = '\b(?:bg-white|bg-black\b|(?:bg|text|border)-(?:emerald|red|green|blue|slate|gray|zinc|amber|rose)-\d{2,3})\b'; reason = "palette_literal" },
@@ -202,6 +216,7 @@ $validationModules = @(
     "index.ps1",
     "testing.ps1",
     "maintenance.ps1",
+    "hygiene.ps1",
     "code-health.ps1",
     "ui-conformance.ps1"
 )
@@ -249,6 +264,7 @@ Test-TestingTodos -CodeHealth:$CodeHealth -Maintenance:$Maintenance -Strict:$Str
 
 if ($Maintenance) {
     Test-MaintenanceDrift -Strict:$Strict
+    Test-HygieneDrift -Strict:$Strict
 }
 
 if ($CodeHealth) {

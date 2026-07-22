@@ -39,6 +39,8 @@ $ErrorActionPreference = "Stop"
 
 . (Join-Path $PSScriptRoot "harness-version-control/shared.ps1")
 
+$script:exceptionLedgerTouched = $false
+
 $repoRootPath = (Resolve-Path $RepoRoot).Path
 
 function Write-WorkUnitLog {
@@ -282,11 +284,77 @@ function Test-CommitCodeHealthGate {
             reason = $AcceptCodeHealth
             violations = ($violations -join "; ")
         }
+
+        if (-not $DryRun) {
+            Add-HarnessExceptionEntry -Type "code-health" -Reason $AcceptCodeHealth -Paths ($violations -join "; ")
+        }
         return
     }
 
     throw ("Code-health gate blocked the commit: " + ($violations -join "; ") +
         ". Split or shrink the files, or pass -AcceptCodeHealth `"<reason>`" to record an intentional exception.")
+}
+
+function Add-HarnessExceptionEntry {
+    param(
+        [string]$Type,
+        [string]$Reason,
+        [string]$Paths
+    )
+
+    # Every accepted exception lands in the ledger with an expiry date so it
+    # cannot live forever (hygiene check flags expired entries).
+    $ttlDays = 30
+    $configPath = Join-Path $repoRootPath ".harness/config.json"
+
+    if (Test-Path -LiteralPath $configPath) {
+        try {
+            $rawConfig = Get-Content -Raw -Encoding UTF8 -LiteralPath $configPath | ConvertFrom-Json
+            if ([int]$rawConfig.hygiene.exceptionTtlDays -ge 1) {
+                $ttlDays = [int]$rawConfig.hygiene.exceptionTtlDays
+            }
+        }
+        catch {
+        }
+    }
+
+    $harnessDir = Join-Path $repoRootPath ".harness"
+
+    if (-not (Test-Path -LiteralPath $harnessDir)) {
+        New-Item -ItemType Directory -Path $harnessDir -Force | Out-Null
+    }
+
+    $ledgerPath = Join-Path $harnessDir "exceptions.json"
+    $entries = @()
+
+    if (Test-Path -LiteralPath $ledgerPath) {
+        try {
+            $entries = @(Get-Content -Raw -Encoding UTF8 -LiteralPath $ledgerPath | ConvertFrom-Json)
+        }
+        catch {
+            $entries = @()
+        }
+    }
+
+    $entries += [pscustomobject]@{
+        type = $Type
+        reason = $Reason
+        paths = $Paths
+        recordedAt = (Get-Date).ToString("yyyy-MM-dd")
+        expires = (Get-Date).AddDays($ttlDays).ToString("yyyy-MM-dd")
+    }
+
+    $json = ConvertTo-Json -InputObject @($entries) -Depth 4
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($ledgerPath, $json.Replace("`r`n", "`n") + "`n", $utf8NoBom)
+
+    $script:exceptionLedgerTouched = $true
+
+    Write-WorkUnitLog -Status "exception_recorded" -Metadata @{
+        type = $Type
+        expires = (Get-Date).AddDays($ttlDays).ToString("yyyy-MM-dd")
+        ledger = ".harness/exceptions.json"
+    }
 }
 
 function Get-UiConformanceGateConfig {
@@ -428,6 +496,10 @@ function Test-CommitUiConformanceGate {
             reason = $AcceptUiConformance
             violations = ($violations -join "; ")
         }
+
+        if (-not $DryRun) {
+            Add-HarnessExceptionEntry -Type "ui-conformance" -Reason $AcceptUiConformance -Paths ($violations -join "; ")
+        }
         return
     }
 
@@ -533,7 +605,14 @@ if ($hasFeatureChanges) {
         }
     }
 
-    Invoke-CommitPathSet -Paths $summaryObject.Feature -Message $codeCommitMessage
+    $featureCommitPaths = @($summaryObject.Feature)
+
+    if ($script:exceptionLedgerTouched) {
+        # The ledger entry belongs to the commit that used the exception.
+        $featureCommitPaths += ".harness/exceptions.json"
+    }
+
+    Invoke-CommitPathSet -Paths $featureCommitPaths -Message $codeCommitMessage
 
     if (-not $DryRun) {
         Write-WorkUnitLog -Status "committed_code" -Metadata @{
