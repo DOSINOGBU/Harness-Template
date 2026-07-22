@@ -55,6 +55,16 @@ $contracts = @(
     @{ Path = "docs/ARTIFACTS.md"; Phrases = @(
         "new-artifact.ps1"
     ) },
+    @{ Path = "docs/REPORTING.md"; Phrases = @(
+        "data-prompt",
+        "sendPrompt",
+        "EVIDENCE_RECORDED",
+        "reporting.json",
+        "괄호"
+    ) },
+    @{ Path = "AGENTS.md"; Phrases = @(
+        "REPORTING.md"
+    ) },
     @{ Path = "docs/exec-plans/README.md"; Phrases = @(
         "drafts",
         "- [ ]"
