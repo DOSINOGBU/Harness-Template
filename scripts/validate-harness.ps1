@@ -156,8 +156,7 @@ $script:harnessConfig = @{
     uiConformanceForbiddenPatterns = @(
         @{ pattern = '#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b'; reason = "hardcoded_hex_color" },
         @{ pattern = '\b(?:bg-white|bg-black\b|(?:bg|text|border)-(?:emerald|red|green|blue|slate|gray|zinc|amber|rose)-\d{2,3})\b'; reason = "palette_literal" },
-        @{ pattern = '@import\s+url\(\s*["'']?https?://'; reason = "cdn_font_import" },
-        @{ pattern = 'from\s+["'']@tabler/'; reason = "forbidden_icon_package" }
+        @{ pattern = '@import\s+url\(\s*["'']?https?://'; reason = "cdn_font_import" }
     )
     autoCommitWorkUnit = $true
     autoPushAfterFeatureCommits = 2
@@ -173,7 +172,6 @@ $script:harnessConfig = @{
         "**/*.key",
         "**/*.pfx",
         "**/*.p12",
-        ".lecturedigest/**",
         "data/raw/**",
         "datasets/raw/**"
     )

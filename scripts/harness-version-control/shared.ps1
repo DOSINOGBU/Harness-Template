@@ -19,7 +19,6 @@ function Get-HarnessVersionControlConfig {
             "**/*.key",
             "**/*.pfx",
             "**/*.p12",
-            ".lecturedigest/**",
             "data/raw/**",
             "datasets/raw/**"
         )

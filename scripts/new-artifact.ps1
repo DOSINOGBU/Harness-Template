@@ -23,7 +23,7 @@
     pwsh -File scripts/new-artifact.ps1 -Type analysis -Slug harness-comparison
 
 .EXAMPLE
-    pwsh -File scripts/new-artifact.ps1 -Type analysis -Series vwap-prereg -Slug v25-overfit
+    pwsh -File scripts/new-artifact.ps1 -Type analysis -Series load-benchmarks -Slug run-03-overfit
 #>
 [CmdletBinding()]
 param(

@@ -41,6 +41,6 @@
 ## Anti Patterns
 
 - 저장소 루트에 `REPORT.md`, `NOTES.md`, `PLAN-v2.md` 같은 파일을 만듭니다.
-- `docs/` 루트에 `PREREG-X-V21.md` … `PREREG-X-V34H.md`처럼 시리즈 파일을 평평하게 쌓습니다. (시리즈 폴더로 묶어야 합니다)
+- `docs/` 루트에 `EXPERIMENT-01.md` … `EXPERIMENT-34.md`처럼 시리즈 파일을 평평하게 쌓습니다. (시리즈 폴더로 묶어야 합니다)
 - 같은 주제의 분석을 새 이름으로 다시 만듭니다. (기존 파일을 갱신하거나 시리즈 폴더에 잇습니다)
 - 날짜 없는 분석 파일명(`ui-audit-final-final.md`)을 만듭니다.

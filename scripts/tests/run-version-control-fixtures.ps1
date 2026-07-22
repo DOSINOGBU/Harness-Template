@@ -81,7 +81,7 @@ function New-VersionControlFixture {
     "autoPushBranches": ["codex/*", "feature/*", "fix/*"],
     "protectedBranches": ["main", "master"],
     "featureCommitTypes": ["feat", "fix", "refactor", "test", "perf"],
-    "blockedPathPatterns": [".env", ".env.*", "**/.env", "**/.env.*", "**/*.pem", "**/*.key", ".lecturedigest/**", "data/raw/**", "datasets/raw/**"],
+    "blockedPathPatterns": [".env", ".env.*", "**/.env", "**/.env.*", "**/*.pem", "**/*.key", "data/raw/**", "datasets/raw/**"],
     "largeFileBytes": 10485760,
     "largeOriginalDataPatterns": ["data/raw/**", "datasets/raw/**", "**/raw/**", "**/*.zip"],
     "workUnitPaths": {

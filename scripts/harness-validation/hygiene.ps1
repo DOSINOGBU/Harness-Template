@@ -1,10 +1,10 @@
 # Anti-drift hygiene checks, each learned from a real failure observed in a
-# consuming project (tradepilot audit, 2026-07-22):
-# - working-tree backlog   (253 uncommitted files, oldest 16 days)
-# - branch backup          (15 commits with no upstream = one disk away from loss)
-# - scratch sprawl         (58 throwaway _tmp_/_validate_ scripts left behind)
-# - expired exceptions     (open-ended "예외·분리예정" tags that never expire)
-# - plan coverage drift    (26 experiments over 12 days with zero plan updates)
+# consuming-project audit:
+# - working-tree backlog   (a large uncommitted pile sitting for weeks)
+# - branch backup          (many commits with no upstream = one disk away from loss)
+# - scratch sprawl         (throwaway _tmp_/_validate_ scripts left behind)
+# - expired exceptions     (open-ended "accepted for now" tags that never expire)
+# - plan coverage drift    (many feature commits with zero plan updates)
 
 function Invoke-HygieneGit {
     param([string[]]$Arguments)

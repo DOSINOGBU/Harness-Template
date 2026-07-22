@@ -42,10 +42,6 @@
         {
           "pattern": "@import\\s+url\\(\\s*[\"']?https?://",
           "reason": "cdn_font_import"
-        },
-        {
-          "pattern": "from\\s+[\"']@tabler/",
-          "reason": "forbidden_icon_package"
         }
       ]
     },
@@ -138,7 +134,6 @@
       "**/*.key",
       "**/*.pfx",
       "**/*.p12",
-      ".lecturedigest/**",
       "data/raw/**",
       "datasets/raw/**"
     ],

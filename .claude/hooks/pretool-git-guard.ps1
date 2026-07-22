@@ -12,7 +12,10 @@ try {
         exit 0
     }
 
-    if ($command -notmatch 'git(\s+-C\s+\S+)?(\s+\S+)*?\s+commit\b') {
+    # Match `git ... commit` where only OPTION tokens (or -C path / -c key=val) sit
+    # between git and the commit subcommand. The old pattern allowed ANY tokens, so
+    # unrelated text like "git rev-parse ... Base commit:" in a heredoc false-matched.
+    if ($command -notmatch 'git(\s+-C\s+\S+|\s+-c\s+\S+|\s+--?[\w-]+(=\S+)?)*\s+commit\b') {
         exit 0
     }
 

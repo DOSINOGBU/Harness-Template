@@ -6,7 +6,7 @@
 
 - 단발 분석: `YYYY-MM-DD-topic.md` (예: `2026-07-22-harness-comparison.md`)
 - 연속 실험·시리즈(v2, ROUND2 등으로 이어지는 작업): `<series-name>/YYYY-MM-DD-detail.md`
-  (예: `vwap-preregistration/2026-07-20-v25-overfit.md`)
+  (예: `load-benchmarks/2026-07-20-run-03-overfit.md`)
 - 파일명은 소문자 kebab-case, 날짜는 항상 맨 앞.
 
 ## Rules

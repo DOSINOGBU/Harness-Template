@@ -14,7 +14,7 @@
 | 루트 고정 문서 | 관례명 고정 | `README.md`, `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md` |
 | 날짜형 산출물(분석·검증·기록) | `YYYY-MM-DD-kebab-topic.md` — 날짜 맨 앞 | `2026-07-22-harness-comparison.md` |
 | 실행 계획 | `NN[a]-kebab-topic.md` | `01-auth.md`, `01a-auth-session.md` |
-| 시리즈(반복 실험) | 시리즈 폴더 + 날짜형 파일 | `analysis/vwap-prereg/2026-07-20-v25.md` |
+| 시리즈(반복 실험) | 시리즈 폴더 + 날짜형 파일 | `analysis/load-benchmarks/2026-07-20-run-03.md` |
 | 설정 파일·표준 폴더 | 생태계 표준명 그대로(예외 허용) | `config.json`, `.gitignore`, `.github/ISSUE_TEMPLATE` |
 
 ## 금지

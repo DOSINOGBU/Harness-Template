@@ -9,8 +9,8 @@
     to the modules/README.md catalog. -DryRun reports gate results only.
 
 .EXAMPLE
-    pwsh -File scripts/promote-module.ps1 -Slug vps-collector -DryRun
-    pwsh -File scripts/promote-module.ps1 -Slug vps-collector -EvidencePath docs/validation/2026-07-30-vps-collector.md
+    pwsh -File scripts/promote-module.ps1 -Slug data-export -DryRun
+    pwsh -File scripts/promote-module.ps1 -Slug data-export -EvidencePath docs/validation/2026-07-30-data-export.md
 #>
 [CmdletBinding()]
 param(
