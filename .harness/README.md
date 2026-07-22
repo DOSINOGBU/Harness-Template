@@ -21,6 +21,9 @@
 | `migration.md` | 데이터·스키마 마이그레이션 |
 | `incident.md` | 장애 대응과 사후 기록 |
 | `doc-update.md` | 문서 갱신 |
+| `commit.md` | 커밋 전 점검 |
+| `pull-request.md` | PR 생성·머지 전 점검 |
+| `maintenance.md` | 드리프트 정리 전 점검 |
 
 ## Prompts
 
@@ -34,6 +37,15 @@
 | `write-tests.md` | 신뢰할 만한 테스트 작성 |
 | `update-docs.md` | 변경에 맞춰 문서 갱신 |
 | `explain-code.md` | 모르는 코드 빠르게 파악 |
+| `commit-change.md` | 변경 검토 후 커밋 |
+| `prepare-pr.md` | PR 제목과 본문 초안 작성 |
+| `cleanup-drift.md` | 유지보수 감지 결과 정리 |
+
+## Validation
+
+`scripts/validate-harness.ps1`는 문서 인덱스와 체크리스트/프롬프트 연결이 실제 파일과 맞는지 확인합니다.
+템플릿 원본에서는 기본 모드를 사용하고, 실제 프로젝트 도입 후에는 `-Strict`로 `docs/TESTING.md`의 TODO 명령까지 실패로 처리합니다.
+`-Maintenance`를 함께 사용하면 오래된 계획, 등록 누락, generated 문서 placeholder, 과도한 TODO를 warning으로 보고합니다.
 
 ## Principle
 
