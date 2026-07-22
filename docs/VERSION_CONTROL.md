@@ -129,6 +129,13 @@ chore(repo): update gitignore
 - **UI 위반 커밋 차단**: 스테이징된 UI 파일에서 `validation.uiConformance` 금지 패턴 위반 수가 직전 커밋보다 **늘어나면** 커밋이 중단됩니다(기존 위반 파일의 무해한 수정은 통과). 의도적 예외는 `-AcceptUiConformance "<사유>"`로 기록합니다.
 - **메시지 스타일 감지**: 최근 30개 커밋에서 지배 스타일(SEMANTIC/PLAIN)을 감지해 로그로 알려주고, SEMANTIC 저장소에서 형식이 어긋난 메시지면 경고합니다.
 - **소급 plan 안내**: 코드가 바뀌었는데 `docs/exec-plans/` 변경이 전혀 없으면, 동작이 바뀐 경우 사후 plan을 남기라는 안내를 로그로 출력합니다.
+- **예외 장부**: `-AcceptCodeHealth`·`-AcceptUiConformance`로 수용한 예외는 `.harness/exceptions.json`에 사유·경로·만료일(`hygiene.exceptionTtlDays`, 기본 30일)과 함께 자동 기록됩니다. 만료된 예외는 `-Maintenance` 위생 검사가 잡으며, 빚을 해소하거나 의식적으로 갱신해야 합니다 — 무기한 예외는 허용되지 않습니다.
+
+## Branch Hygiene
+
+- 브랜치는 이름이 가리키는 주제의 작업만 담습니다. 무관한 대형 작업이 시작되면 새 topic branch를 만듭니다.
+- upstream 없는 브랜치에 커밋이 `hygiene.branchBackupCommits`(기본 5)개 이상 쌓이면 `-Maintenance` 위생 검사가 경고합니다. `git push -u origin <branch>`로 원격 백업을 먼저 만드세요 — 로컬에만 있는 커밋은 디스크 사고 한 번으로 사라집니다.
+- 미커밋 변경이 `hygiene.maxUncommittedFiles`(기본 20)개 이상 쌓이면 Stop 훅이 격상 알림(세션당 최대 3회)을 보내고 위생 검사도 경고합니다. 미추적 파일은 커밋 또는 `.gitignore` 중 하나로 즉시 결정합니다.
 - 다음이면 스크립트가 중단됩니다: 차단 경로 포함, 표준 작업 단위에 속하지 않는 변경(`Other`)이 섞임, 기능·work unit 문서와 **그 밖의** 문서 변경이 동시에 있음, `VerificationStatus=Failed`, 기능/테스트 변경인데 검증이 `Passed`가 아님, `VerificationStatus=Partial`인데 exec-plan/validation이 아닌 문서(`DocsOther`)만 변경됨, 작업 단위 커밋 후에도 스테이징된 변경이 남음(`-DryRun`이 아닐 때).
 
 ## Direct Work Unit Commit
