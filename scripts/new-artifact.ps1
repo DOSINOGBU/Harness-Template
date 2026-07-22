@@ -28,7 +28,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("analysis", "validation", "run-log")]
+    [ValidateSet("analysis", "validation", "run-log", "exec-plan")]
     [string]$Type,
 
     [Parameter(Mandatory = $true)]
@@ -36,7 +36,10 @@ param(
 
     [string]$Series,
 
-    [string]$Date
+    [string]$Date,
+
+    [ValidateSet("drafts", "active")]
+    [string]$Stage = "drafts"
 )
 
 $ErrorActionPreference = "Stop"
@@ -48,6 +51,44 @@ if ([string]::IsNullOrWhiteSpace($scriptBase)) {
 $repoRoot = (Resolve-Path -LiteralPath (Join-Path $scriptBase "..")).Path
 
 $slugPattern = '^[a-z0-9][a-z0-9-]*$'
+
+if ($Type -eq "exec-plan") {
+    # Exec plans use the numbering scheme from docs/exec-plans/README.md, no date prefix.
+    if ($Slug -notmatch '^\d{2}[a-z]?-[a-z0-9][a-z0-9-]*$') {
+        Write-Error "Exec-plan slug must match NN[-letter]-kebab-topic (e.g. 01-auth, 01a-auth-session): '$Slug'"
+        exit 1
+    }
+
+    $templatePath = Join-Path $repoRoot "docs\exec-plans\template.md"
+
+    if (-not (Test-Path -LiteralPath $templatePath)) {
+        Write-Error "Exec-plan template is missing: docs/exec-plans/template.md"
+        exit 1
+    }
+
+    $planRelativeFolder = "docs/exec-plans/$Stage"
+    $planFolderPath = Join-Path $repoRoot ($planRelativeFolder -replace "/", [IO.Path]::DirectorySeparatorChar)
+    $planFilePath = Join-Path $planFolderPath "$Slug.md"
+    $planRelativePath = "$planRelativeFolder/$Slug.md"
+
+    if (Test-Path -LiteralPath $planFilePath) {
+        Write-Error "Exec plan already exists, refusing to overwrite: $planRelativePath"
+        exit 1
+    }
+
+    if (-not (Test-Path -LiteralPath $planFolderPath)) {
+        New-Item -ItemType Directory -Path $planFolderPath -Force | Out-Null
+    }
+
+    Copy-Item -LiteralPath $templatePath -Destination $planFilePath
+    Write-Host "[NewArtifact] created { path=$planRelativePath; type=exec-plan; stage=$Stage }"
+
+    if ($Stage -eq "drafts") {
+        Write-Host "[NewArtifact] note { next=fill the draft, get user approval, then move it to docs/exec-plans/active/ }"
+    }
+
+    exit 0
+}
 
 if ($Slug -notmatch $slugPattern) {
     Write-Error "Slug must be kebab-case (lowercase letters, digits, hyphens): '$Slug'"
@@ -122,6 +163,8 @@ $templates = @{
     "validation" = @"
 # Validation: $titleSlug
 
+Tree hash: ``TREE_HASH_PLACEHOLDER``
+
 ## Scope
 
 ## Commands / Scenarios
@@ -156,6 +199,23 @@ $templates = @{
 }
 
 $content = $templates[$Type].Replace("`r`n", "`n")
+
+if ($content.Contains("TREE_HASH_PLACEHOLDER")) {
+    $treeHash = "unavailable"
+
+    try {
+        $resolved = & git -C $repoRoot rev-parse --short "HEAD^{tree}" 2>$null
+        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($resolved)) {
+            $treeHash = ([string]$resolved).Trim()
+        }
+    }
+    catch {
+        # Leave "unavailable" when git is missing; verify-evidence.ps1 reports it.
+    }
+
+    $content = $content.Replace("TREE_HASH_PLACEHOLDER", $treeHash)
+}
+
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($filePath, $content, $utf8NoBom)
 

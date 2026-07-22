@@ -177,6 +177,46 @@ function Test-ArtifactNaming {
     }
 }
 
+function Test-ExecPlanCheckboxes {
+    param(
+        [bool]$Strict
+    )
+
+    # Machine-readable completion: a plan moved to completed/ may not keep
+    # unchecked "- [ ]" items (they must be done, cancelled, or split out).
+    $completedFolder = Resolve-RepoRelativePath -RelativePath "docs/exec-plans/completed"
+    $files = @()
+
+    if (Test-Path -LiteralPath $completedFolder) {
+        $files = @(Get-ChildItem -LiteralPath $completedFolder -Filter "*.md" -File)
+    }
+
+    $findingCount = 0
+
+    foreach ($file in $files) {
+        $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $file.FullName
+        $uncheckedCount = [regex]::Matches($content, '(?m)^\s*-\s\[\s\]\s').Count
+
+        if ($uncheckedCount -eq 0) {
+            continue
+        }
+
+        $findingCount += 1
+        Add-MaintenanceFinding -Check "maintenance-exec-plan-checkboxes" -Metadata @{
+            path = Get-RepoRelativePath -FullPath $file.FullName
+            unchecked = $uncheckedCount
+            reason = "unchecked_items_in_completed_plan"
+            strict = $Strict
+        }
+    }
+
+    if ($findingCount -eq 0) {
+        Write-HarnessLog -Check "maintenance-exec-plan-checkboxes" -Status "success" -Metadata @{
+            scanned = $files.Count
+        }
+    }
+}
+
 function Test-StaleActivePlans {
     param(
         [bool]$Strict
@@ -611,6 +651,7 @@ function Test-MaintenanceDrift {
     Test-ArtifactNaming -Strict:$Strict
     Test-StaleActivePlans -Strict:$Strict
     Test-ExecPlanFormat -Strict:$Strict
+    Test-ExecPlanCheckboxes -Strict:$Strict
     Test-GeneratedTodoTimestamps -Strict:$Strict
     Test-PlaceholderDensity -Strict:$Strict
     Test-ExecPlanUsage -Strict:$Strict

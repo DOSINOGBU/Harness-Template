@@ -40,3 +40,7 @@ jobs:
       - name: Run version control fixture tests
         shell: pwsh
         run: pwsh -File scripts/tests/run-version-control-fixtures.ps1
+
+      - name: Run prompt contract tests
+        shell: pwsh
+        run: pwsh -File scripts/tests/run-prompt-contract-tests.ps1

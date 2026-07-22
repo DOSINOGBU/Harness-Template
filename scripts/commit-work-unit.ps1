@@ -28,6 +28,9 @@ param(
     [string]$Summary,
     [string]$CodeMessage,
     [string]$DocsMessage,
+    [string]$Justification,
+    [string]$AcceptCodeHealth,
+    [switch]$SkipCodeHealthGate,
     [switch]$DryRun
 )
 
@@ -137,6 +140,154 @@ function Invoke-WorkUnitDocsCommit {
     }
 }
 
+function Get-DominantCommitStyle {
+    $subjects = @()
+
+    try {
+        $subjects = @(Invoke-HarnessGit -RepoRoot $repoRootPath -Arguments @("log", "-30", "--format=%s"))
+    }
+    catch {
+        return $null
+    }
+
+    if ($subjects.Count -lt 5) {
+        return $null
+    }
+
+    $semanticPattern = '^[a-z]+(\([^)]+\))?!?:\s'
+    $semanticCount = @($subjects | Where-Object { $_ -match $semanticPattern }).Count
+
+    if ($semanticCount * 10 -ge $subjects.Count * 6) {
+        return "SEMANTIC"
+    }
+
+    return "PLAIN"
+}
+
+function Get-CommitGateThresholds {
+    param(
+        [string]$RelativePath
+    )
+
+    # Fallbacks mirror .harness/config.json validation.codeHealth defaults.
+    $defaults = [pscustomobject]@{ FeatureFreeze = 800; Failure = 1200 }
+    $markup = [pscustomobject]@{ FeatureFreeze = 1200; Failure = 1800 }
+    $migration = [pscustomobject]@{ FeatureFreeze = 1800; Failure = 2400 }
+
+    $configPath = Join-Path $repoRootPath ".harness/config.json"
+
+    if (Test-Path -LiteralPath $configPath) {
+        try {
+            $rawConfig = Get-Content -Raw -Encoding UTF8 -LiteralPath $configPath | ConvertFrom-Json
+            $codeHealth = $rawConfig.validation.codeHealth
+
+            if ($null -ne $codeHealth) {
+                if ($codeHealth.featureFreezeLines) { $defaults = [pscustomobject]@{ FeatureFreeze = [int]$codeHealth.featureFreezeLines; Failure = [int]$codeHealth.failureLines } }
+                if ($codeHealth.markupFeatureFreezeLines) { $markup = [pscustomobject]@{ FeatureFreeze = [int]$codeHealth.markupFeatureFreezeLines; Failure = [int]$codeHealth.markupFailureLines } }
+                if ($codeHealth.migrationFeatureFreezeLines) { $migration = [pscustomobject]@{ FeatureFreeze = [int]$codeHealth.migrationFeatureFreezeLines; Failure = [int]$codeHealth.migrationFailureLines } }
+            }
+        }
+        catch {
+            # Keep defaults when config is unreadable; the validator reports config errors separately.
+        }
+    }
+
+    $extension = [IO.Path]::GetExtension($RelativePath).ToLowerInvariant()
+    $markupExtensions = @(".astro", ".css", ".html", ".jsx", ".sass", ".scss", ".svelte", ".tsx", ".vue")
+    $migrationExtensions = @(".proto", ".sql")
+    $normalizedPath = $RelativePath -replace "\\", "/"
+
+    if ($migrationExtensions -contains $extension -or $normalizedPath -like "*/migrations/*") {
+        return $migration
+    }
+
+    if ($markupExtensions -contains $extension) {
+        return $markup
+    }
+
+    return $defaults
+}
+
+function Get-GitFileLineCount {
+    param(
+        [string]$RelativePath,
+        [switch]$FromHead
+    )
+
+    if ($FromHead) {
+        try {
+            $content = @(Invoke-HarnessGit -RepoRoot $repoRootPath -Arguments @("show", "HEAD:$RelativePath"))
+            return $content.Count
+        }
+        catch {
+            return 0
+        }
+    }
+
+    $fullPath = Join-Path $repoRootPath ($RelativePath -replace "/", [IO.Path]::DirectorySeparatorChar)
+
+    if (-not (Test-Path -LiteralPath $fullPath)) {
+        return 0
+    }
+
+    return @(Get-Content -LiteralPath $fullPath -ErrorAction SilentlyContinue).Count
+}
+
+function Test-CommitCodeHealthGate {
+    param(
+        [string[]]$FeaturePaths
+    )
+
+    if ($SkipCodeHealthGate -or $FeaturePaths.Count -eq 0) {
+        return
+    }
+
+    $codeExtensions = @(
+        ".astro", ".c", ".cc", ".cjs", ".cpp", ".cs", ".css", ".go", ".h", ".hpp",
+        ".html", ".java", ".js", ".jsx", ".kt", ".mjs", ".php", ".ps1", ".psm1",
+        ".py", ".rb", ".rs", ".sass", ".scala", ".scss", ".sh", ".sql", ".svelte",
+        ".swift", ".ts", ".tsx", ".vue"
+    )
+    $violations = @()
+
+    foreach ($path in $FeaturePaths) {
+        $extension = [IO.Path]::GetExtension($path).ToLowerInvariant()
+
+        if ($codeExtensions -notcontains $extension) {
+            continue
+        }
+
+        $thresholds = Get-CommitGateThresholds -RelativePath $path
+        $newLineCount = Get-GitFileLineCount -RelativePath $path
+
+        if ($newLineCount -ge $thresholds.Failure) {
+            $violations += "$path ($newLineCount lines >= failure tier $($thresholds.Failure))"
+            continue
+        }
+
+        $oldLineCount = Get-GitFileLineCount -RelativePath $path -FromHead
+
+        if ($oldLineCount -ge $thresholds.FeatureFreeze -and $newLineCount -gt $oldLineCount) {
+            $violations += "$path grew $oldLineCount -> $newLineCount lines while over the feature-freeze tier ($($thresholds.FeatureFreeze))"
+        }
+    }
+
+    if ($violations.Count -eq 0) {
+        return
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($AcceptCodeHealth)) {
+        Write-WorkUnitLog -Status "code_health_accepted" -Metadata @{
+            reason = $AcceptCodeHealth
+            violations = ($violations -join "; ")
+        }
+        return
+    }
+
+    throw ("Code-health gate blocked the commit: " + ($violations -join "; ") +
+        ". Split or shrink the files, or pass -AcceptCodeHealth `"<reason>`" to record an intentional exception.")
+}
+
 if (-not (Test-HarnessGitRepository -RepoRoot $repoRootPath)) {
     throw "RepoRoot is not a git work tree: $repoRootPath"
 }
@@ -188,8 +339,52 @@ if (-not $hasFeatureChanges -and -not $hasWorkUnitDocs -and -not $hasDocsOtherCh
 }
 
 if ($hasFeatureChanges) {
+    # Atomicity floor (ported from lazycodex git-master): 3+ files in one code
+    # commit require a one-sentence justification, or a split into ~ceil(n/3) commits.
+    if ($summaryObject.Feature.Count -ge 3 -and [string]::IsNullOrWhiteSpace($Justification)) {
+        $suggestedCommits = [math]::Ceiling($summaryObject.Feature.Count / 3)
+        throw ("Atomicity floor: $($summaryObject.Feature.Count) feature/test files in a single commit require " +
+            "-Justification `"<one sentence why this is one unit>`" or a split into ~$suggestedCommits commits.")
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($Justification)) {
+        Write-WorkUnitLog -Status "atomicity_justified" -Metadata @{
+            files = $summaryObject.Feature.Count
+            justification = $Justification
+        }
+    }
+
+    Test-CommitCodeHealthGate -FeaturePaths @($summaryObject.Feature)
+
+    $planPathsTouched = @($changedPaths | Where-Object { ($_ -replace "\\", "/") -like "docs/exec-plans/*" })
+
+    if ($planPathsTouched.Count -eq 0) {
+        Write-WorkUnitLog -Status "retroactive_plan_check" -Metadata @{
+            hint = "code changed without any exec-plan update; if behavior changed, record a retroactive plan (docs/exec-plans/README.md)"
+        }
+    }
+
     $codeCommitMessage = Get-CodeCommitMessage
     Assert-CleanCommitMessage -Message $codeCommitMessage -Kind "Code"
+
+    $dominantStyle = Get-DominantCommitStyle
+
+    if ($dominantStyle) {
+        $matchesSemantic = $codeCommitMessage -match '^[a-z]+(\([^)]+\))?!?:\s'
+
+        if ($dominantStyle -eq "SEMANTIC" -and -not $matchesSemantic) {
+            Write-WorkUnitLog -Status "style_mismatch_warning" -Metadata @{
+                dominantStyle = $dominantStyle
+                message = $codeCommitMessage
+            }
+        }
+        else {
+            Write-WorkUnitLog -Status "style_detected" -Metadata @{
+                dominantStyle = $dominantStyle
+            }
+        }
+    }
+
     Invoke-CommitPathSet -Paths $summaryObject.Feature -Message $codeCommitMessage
 
     if (-not $DryRun) {

@@ -168,7 +168,7 @@ function Get-LongFunctionCandidates {
 
     $candidates = @()
     $threshold = $script:harnessConfig.codeHealthLongFunctionLines
-    $functionStartPattern = '^\s*(function\s+[\w-]+|(?:export\s+)?(?:async\s+)?function\s+\w+|(?:export\s+)?(?:const|let|var)\s+\w+\s*=\s*(?:async\s*)?\([^)]*\)\s*=>|def\s+\w+\s*\()'
+    $functionStartPattern = '^\s*(function\s+[\w-]+|(?:export\s+)?(?:async\s+)?function\s+\w+|(?:export\s+)?(?:const|let|var)\s+\w+\s*=\s*(?:async\s*)?\([^)]*\)\s*=>|def\s+\w+\s*\(|func\s+(?:\([^)]*\)\s*)?\w+\s*\(|(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?fn\s+\w+)'
     $currentFunction = $null
     $braceDepth = 0
     $startIndent = 0
