@@ -24,6 +24,7 @@
 | `UI_RULES.md` | 프로젝트 UI 규칙(토큰·컴포넌트·체크리스트) — UI 수정 전 필수 선행 |
 | `ARTIFACTS.md` | 문서 산출물(분석·기록·계획)의 고정 위치와 네이밍 규칙 |
 | `REPORTING.md` | 결과 보고 체계(비쥬얼라이즈 골격·괄호 병기·비유 고정·실행 버튼)의 단일 정답지 |
+| `NAMING.md` | 파일·폴더 이름 통일 규칙(kebab-case, 날짜형, 금지 목록, 레거시 예외) |
 | `PULL_REQUESTS.md` | PR 생성, 리뷰, 머지 전 확인 기준 |
 | `MAINTENANCE.md` | 드리프트 감지와 안전한 정리 기준 |
 | `PERFORMANCE.md` | 성능 예산과 흔한 함정 |
@@ -38,7 +39,7 @@
 | 단계 | 문서 | 사용 시점 |
 |---|---|---|
 | Essential | `../AGENTS.md`, `../ARCHITECTURE.md`, `WORKFLOW.md`, `PROJECT_RULES.md`, `AGENT_BEHAVIOR.md`, `TESTING.md` | 템플릿 도입과 모든 작업의 기본 진입점 |
-| Common | `PRODUCT_CONTEXT.md`, `QUALITY_SCORE.md`, `VERSION_CONTROL.md`, `PULL_REQUESTS.md`, `MAINTENANCE.md`, `ARTIFACTS.md`, `REPORTING.md`, `.harness/checklists/feature-change.md`, `.harness/checklists/bug-fix.md` | 기능 추가, 버그 수정, 커밋, PR, 유지보수처럼 자주 반복되는 작업 |
+| Common | `PRODUCT_CONTEXT.md`, `QUALITY_SCORE.md`, `VERSION_CONTROL.md`, `PULL_REQUESTS.md`, `MAINTENANCE.md`, `ARTIFACTS.md`, `REPORTING.md`, `NAMING.md`, `.harness/checklists/feature-change.md`, `.harness/checklists/bug-fix.md` | 기능 추가, 버그 수정, 커밋, PR, 유지보수처럼 자주 반복되는 작업 |
 | Conditional | `SECURITY.md`, `DATA.md`, `DEPENDENCIES.md`, `PERFORMANCE.md`, `UI_RULES.md`, `FRONTEND.md`, `BACKEND.md`, `DEPLOYMENT.md`, `INFRASTRUCTURE.md`, `RUNBOOK.md`, `COST.md`, `ACCESSIBILITY.md`, `INTERNATIONALIZATION.md`, `LICENSING.md` | 해당 영역을 실제로 변경할 때 |
 | Mature / Optional | `adr/`, `generated/`, `references/`, `agent-runs/`, `exec-plans/`, `exec-plans/template.md`, `exec-plans/tech-debt-tracker.md`, `LEARNING_LOG.md`, `AUTOMATION_EVOLUTION.md` | 결정 기록, 생성 문서, 외부 참고, 실행 기록, 장기 계획, 자동화 진화가 필요한 단계 |
 
