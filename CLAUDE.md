@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+이 하네스의 이름은 buildproof(증거로 짓는다)입니다.
+
 @AGENTS.md
 
 - UI·스타일 파일을 수정하기 전에는 `docs/UI_RULES.md`를 먼저 읽습니다.

@@ -4,7 +4,7 @@ AI가 기능의 목적을 오해하지 않도록 제품 맥락을 기록합니�
 
 ## 이 문서의 역할
 
-- 이 저장소는 **하네스 템플릿**입니다. `Problem`, `Target Users`, `Out of scope`, `PRD Feature Contract`는 **실제 제품 저장소로 포크·도입할 때** 채웁니다.
+- 이 저장소는 **buildproof 하네스 템플릿**입니다. `Problem`, `Target Users`, `Out of scope`, `PRD Feature Contract`는 **실제 제품 저장소로 포크·도입할 때** 채웁니다.
 - 긴 서술형 PRD는 [`docs/product-specs/index.md`](product-specs/index.md)와 기능별 명세에 두고, 이 파일의 **기능 계약 표**는 구현·회귀 테스트의 단일 요약 기준으로 유지합니다.
 - 회귀 검증 절차는 [`docs/TESTING.md`](TESTING.md)의 Regression Verification Policy를 따릅니다.
 - 도메인 용어는 [`docs/GLOSSARY.md`](GLOSSARY.md)와 충돌하지 않게 맞춥니다.
