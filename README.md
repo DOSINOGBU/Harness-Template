@@ -1,8 +1,10 @@
-# Harness Template
+# buildproof
 
-AI coding agents are most useful when they inherit a clear operating system: where to look, how to decide, how to validate, and when to stop. This repository is a reusable harness for that workflow.
+**Build like bulletproof, prove it with proof.** — 증거로 짓는 에이전트 하네스 (구 Harness Template)
 
-The template favors debuggability, small changes, explicit failure handling, and repeatable validation over clever or compressed output.
+AI coding agents are most useful when they inherit a clear operating system: where to look, how to decide, how to validate, and when to stop. buildproof is a reusable harness for that workflow: completion claims are backed by evidence files (`EVIDENCE_RECORDED`), new violations are blocked at commit time while legacy debt is ledgered with expiry dates, and drift is caught by hygiene checks before it becomes a 253-file backlog.
+
+The harness favors debuggability, small changes, explicit failure handling, and repeatable validation over clever or compressed output.
 
 ## 10 Minute Quick Start
 

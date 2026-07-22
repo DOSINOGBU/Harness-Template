@@ -1,6 +1,6 @@
-# Harness
+# buildproof Harness
 
-이 폴더는 AI 에이전트를 운영하기 위한 반복 가능한 작업 절차를 담습니다.
+이 폴더는 AI 에이전트를 운영하기 위한 반복 가능한 작업 절차(buildproof 하네스의 체크리스트·프롬프트·설정)를 담습니다.
 
 작업 흐름은 [`docs/WORKFLOW.md`](../docs/WORKFLOW.md), 실행 계획은 [`docs/exec-plans/README.md`](../docs/exec-plans/README.md), 에이전트 지도는 [`AGENTS.md`](../AGENTS.md)와 함께 참고합니다.
 
