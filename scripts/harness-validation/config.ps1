@@ -166,6 +166,8 @@ function Import-HarnessConfig {
         Set-PositiveIntegerConfigValue -Key "hygieneExceptionTtlDays" -Value $hygiene.exceptionTtlDays
         Set-PositiveIntegerConfigValue -Key "hygieneBranchBackupCommits" -Value $hygiene.branchBackupCommits
         Set-PositiveIntegerConfigValue -Key "hygienePlanDriftMinFeatureCommits" -Value $hygiene.planDriftMinFeatureCommits
+        Set-BooleanConfigValue -Key "hygieneNamingEnabled" -Value $hygiene.namingEnabled
+        Set-StringArrayConfigValue -Key "hygieneNamingLegacyAllowed" -Value $hygiene.namingLegacyAllowed
     }
 
     $versionControl = $config.versionControl

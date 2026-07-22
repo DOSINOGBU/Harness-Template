@@ -58,9 +58,10 @@ function Invoke-EvidenceGit {
     param([string[]]$Arguments)
 
     # Native stderr under EAP=Stop throws in Windows PowerShell; relax around git.
+    # core.quotepath=false: quoted octal-escaped Korean paths break the path filters.
     $previousEap = $script:ErrorActionPreference
     $script:ErrorActionPreference = "Continue"
-    $output = & git -C $repoRoot @Arguments 2>$null
+    $output = & git -C $repoRoot -c core.quotepath=false @Arguments 2>$null
     $exitCode = $LASTEXITCODE
     $script:ErrorActionPreference = $previousEap
 
@@ -74,18 +75,20 @@ if ($commitCheck.ExitCode -ne 0) {
     exit 1
 }
 
-# Committed changes since the base commit, excluding the evidence folder itself.
-$committedDiff = Invoke-EvidenceGit -Arguments @("diff", "--name-only", "$recordedHash..HEAD", "--", ".", ":(exclude)docs/validation")
+# Committed changes since the base commit. docs/ is excluded entirely: evidence
+# freshness is about CODE state - the harness's own document artifacts (plan
+# checkboxes, analysis notes) must not flip evidence to stale.
+$committedDiff = Invoke-EvidenceGit -Arguments @("diff", "--name-only", "$recordedHash..HEAD", "--", ".", ":(exclude)docs")
 
 if ($committedDiff.ExitCode -ne 0) {
     Write-Host "[VerifyEvidence] failed { path=$Path; reason=git_diff_failed }"
     exit 1
 }
 
-# Uncommitted working-tree changes outside the evidence folder.
-$statusResult = Invoke-EvidenceGit -Arguments @("status", "--porcelain")
+# Uncommitted working-tree changes outside docs/.
+$statusResult = Invoke-EvidenceGit -Arguments @("status", "--porcelain", "--untracked-files=all")
 $dirtyPaths = @($statusResult.Output | Where-Object {
-    $_ -and ($_.Length -gt 3) -and (($_.Substring(3) -replace "\\", "/") -notlike "docs/validation/*")
+    $_ -and ($_.Length -gt 3) -and (($_.Substring(3) -replace "\\", "/") -notlike "docs/*")
 })
 
 $changedPaths = @($committedDiff.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })

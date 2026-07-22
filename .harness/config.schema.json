@@ -86,7 +86,9 @@
         "scratchPatterns": { "$ref": "#/definitions/nonEmptyStringArray" },
         "exceptionTtlDays": { "$ref": "#/definitions/positiveInteger" },
         "branchBackupCommits": { "$ref": "#/definitions/positiveInteger" },
-        "planDriftMinFeatureCommits": { "$ref": "#/definitions/positiveInteger" }
+        "planDriftMinFeatureCommits": { "$ref": "#/definitions/positiveInteger" },
+        "namingEnabled": { "type": "boolean" },
+        "namingLegacyAllowed": { "$ref": "#/definitions/nonEmptyStringArray" }
       }
     },
     "uiConformance": {
