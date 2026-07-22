@@ -69,7 +69,9 @@ $contracts = @(
         "minmax(180px,1fr)",
         "15px/500",
         "12px muted",
-        "N/A(answer)"
+        "N/A(answer)",
+        "pretool-report-lint",
+        "analogyAnchors"
     ) },
     @{ Path = "docs/MODULES.md"; Phrases = @(
         "incubator/",
@@ -143,10 +145,26 @@ else {
             $failureCount += 1
             Write-ContractLog -Status "failed" -Metadata @{ path = ".harness/reporting.json"; reason = "empty_analogy" }
         }
+
+        if (@($reporting.analogyAnchors).Count -lt 1) {
+            $failureCount += 1
+            Write-ContractLog -Status "failed" -Metadata @{ path = ".harness/reporting.json"; reason = "missing_analogy_anchors" }
+        }
     }
     catch {
         $failureCount += 1
         Write-ContractLog -Status "failed" -Metadata @{ path = ".harness/reporting.json"; reason = "invalid_json" }
+    }
+}
+
+# Report-lint enforcement must exist (linter + hook).
+foreach ($enforcer in @("scripts/harness-reporting/lint.ps1", ".claude/hooks/pretool-report-lint.ps1")) {
+    $checkCount += 1
+    $enforcerPath = Join-Path $repoRoot ($enforcer -replace "/", [IO.Path]::DirectorySeparatorChar)
+
+    if (-not (Test-Path -LiteralPath $enforcerPath)) {
+        $failureCount += 1
+        Write-ContractLog -Status "failed" -Metadata @{ path = $enforcer; reason = "report_lint_enforcer_missing" }
     }
 }
 
