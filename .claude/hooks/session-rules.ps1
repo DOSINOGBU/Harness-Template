@@ -20,6 +20,12 @@ try {
                 $analogy = " Current report analogy (from .harness/reporting.json): " + [string]$reporting.analogy +
                     ". Keep using this analogy in reports until the user asks to change it."
             }
+
+            if (-not [string]::IsNullOrWhiteSpace([string]$reporting.styleGuide)) {
+                $analogy += " Report style guide: follow the skeleton, components, and language rules in '" +
+                    [string]$reporting.styleGuide + "' for every result-report widget, and put a sendPrompt action " +
+                    "button (label ending with an up-right arrow) on every next-decision/recommended-task item."
+            }
         }
         catch {
         }
