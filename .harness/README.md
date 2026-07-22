@@ -12,6 +12,7 @@
 | `prompts/` | 반복 사용 가능한 프롬프트 템플릿 |
 | `config.json` | 하네스 검증 기준과 제외 경로 |
 | `config.schema.json` | `config.json` 편집 시 키·타입 검증(JSON Schema) |
+| `reporting.json` | 결과 보고 비유(analogy) 상태 — 사용자가 바꿔 달라고 할 때만 갱신 |
 
 체크리스트·프롬프트 파일을 추가하거나 이름을 바꿀 때는 아래 표와 [`scripts/validate-harness.ps1`](../scripts/validate-harness.ps1)가 기대하는 문서 인덱스·연결을 함께 맞춥니다.
 

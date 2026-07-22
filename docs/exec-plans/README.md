@@ -4,8 +4,8 @@
 
 ## Workflow
 
-1. `docs/exec-plans/active/`에 계획 파일을 만듭니다.
-2. 목표, 범위, 의존성, 병행 가능 경계, 품질 게이트, 검증 방법, 체크리스트를 작성합니다.
+1. `scripts/new-artifact.ps1 -Type exec-plan -Slug <NN-topic>`으로 `docs/exec-plans/drafts/`에 초안을 만듭니다(손으로 template을 복사하지 않습니다).
+2. 초안에 목표, 범위, 의존성, 병행 가능 경계, 품질 게이트, 검증 방법, 체크리스트를 작성하고 **사용자 승인을 받은 뒤** `docs/exec-plans/active/`로 이동합니다. drafts에 있는 계획은 아직 실행 대상이 아닙니다.
 3. 작업 중 발견한 결정과 리스크를 업데이트합니다.
 4. 긴 API 작업이나 자동 파이프라인이면 checkpoint, resume, time budget, candidate limit를 기록합니다.
 5. 기능 동작 완료와 품질 승인 완료를 분리해서 기록합니다.
@@ -75,6 +75,7 @@ active plan의 표준 상태는 `Ready`, `Active`, `Blocked`, `Partial`, `Comple
 `docs/exec-plans/completed/`로 이동하기 전에 아래 조건을 모두 만족해야 합니다.
 
 - `Goal`, `Scope`, `Steps`, `Validation`, `Result`가 채워져 있습니다.
+- `Steps`의 실행 항목은 `- [ ] N. 제목` 체크박스 형식으로 쓰고, 완료 시 `- [x]`로 바꿉니다. completed로 옮기는 시점에는 미완료 `- [ ]`가 0개여야 합니다(`scripts/validate-harness.ps1 -Maintenance`가 검사하며, 취소·분리된 항목은 체크 후 사유를 적습니다).
 - 템플릿의 나머지 섹션(`Status`, `Depends On`, `Blocks`, `Parallel Work`, `Quality Gate`, `Long Running Work`, `Risks` 등)은 해당 없거나 아직 없으면 `- None`·빈 bullet 등으로 표시해 두고, heading은 삭제하지 않습니다.
 - `Steps`는 완료, 취소, 분리 중 하나로 정리되어 있습니다.
 - 검증 결과와 실행하지 못한 검증의 이유가 `Validation`에 남아 있습니다.
