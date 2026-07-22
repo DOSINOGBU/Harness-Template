@@ -81,7 +81,7 @@
 
 작업 완료 시 `.harness/checklists/pre-completion.md`로 자체 점검하고, 같은 문서의 "완료 보고 형식" 섹션이 정한 순서(요청 확인 / 변경 사항 / 검증 / 결과 확인 / CodeHealth / 리스크와 다음 판단)를 따릅니다. 검증을 실행하지 못했거나 해당 없는 항목이 있으면 생략하지 말고 이유와 대체 확인을 해당 섹션에 적습니다.
 
-**완료 주장은 증거 파일로 뒷받침합니다(EVIDENCE_RECORDED 계약).** 기능·버그·검증이 있는 작업은 검증 명령과 실제 출력을 `scripts/new-artifact.ps1 -Type validation`으로 만든 `docs/validation/YYYY-MM-DD-*.md`에 기록하고, 완료 보고의 **마지막 줄**을 정확히 `EVIDENCE_RECORDED: <저장소 상대 경로>` 형식으로 끝냅니다. 증거 파일에는 생성 시점의 tree hash(코드 지문)가 자동 기록되며, 리뷰어는 `scripts/verify-evidence.ps1 -Path <경로>`로 증거가 현재 코드와 맞는지(fresh/stale) 확인합니다. 검증이 없는 순수 문서 작업은 `EVIDENCE_RECORDED: N/A(docs-only)`로 표기합니다.
+**완료 주장은 증거 파일로 뒷받침합니다(EVIDENCE_RECORDED 계약).** 기능·버그·검증이 있는 작업은 검증 명령과 실제 출력을 `scripts/new-artifact.ps1 -Type validation`으로 만든 `docs/validation/YYYY-MM-DD-*.md`에 기록하고, 완료 보고의 **마지막 줄**을 정확히 `EVIDENCE_RECORDED: <저장소 상대 경로>` 형식으로 끝냅니다. 증거 파일에는 생성 시점의 기준 커밋(코드 지문)이 자동 기록되며, 리뷰어는 `scripts/verify-evidence.ps1 -Path <경로>`로 그 이후 코드가 바뀌었는지(fresh/stale) 확인합니다. 검증이 없는 순수 문서 작업은 `EVIDENCE_RECORDED: N/A(docs-only)`로 표기합니다.
 
 **결과 보고는 항상 비쥬얼라이즈로 합니다.** 시각화 위젯 도구(예: visualize `show_widget` MCP)를 쓸 수 있는 환경이면 완료 보고의 핵심(변경 요약, 검증 결과, 리스크)을 **반드시 비쥬얼라이즈 위젯으로 함께** 보고합니다. **`리스크와 다음 판단`(남은 리스크, 사용자 결정 사항)과 `추천 작업`(다음에 할 일 제안·우선순위)도 텍스트로만 나열하지 말고 항상 비쥬얼라이즈 위젯으로 표현합니다.** 텍스트 보고는 위젯을 보완할 뿐 대체하지 않습니다. 위젯 도구가 없는 환경에서만 마크다운 표·다이어그램으로 대체하고, 대체했다는 사실과 이유를 완료 보고에 한 줄 남깁니다.
 
