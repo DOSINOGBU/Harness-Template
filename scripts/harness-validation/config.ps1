@@ -95,36 +95,87 @@ function Import-HarnessConfig {
 
     $errorCountBeforeValidation = $script:errorCount
 
-    Set-PositiveIntegerConfigValue -Key "maintenanceFindingThreshold" -Value $config.validation.maintenanceFindingThreshold
-    Set-PositiveIntegerConfigValue -Key "staleActivePlanDays" -Value $config.validation.staleActivePlanDays
-    Set-PositiveIntegerConfigValue -Key "placeholderTodoThreshold" -Value $config.validation.placeholderTodoThreshold
-    Set-StringArrayConfigValue -Key "placeholderPatterns" -Value $config.validation.placeholderPatterns
-    Set-BooleanConfigValue -Key "requireExecPlanUsage" -Value $config.validation.requireExecPlanUsage
-    Set-PositiveIntegerConfigValue -Key "codeHealthWarningLines" -Value $config.validation.codeHealth.warningLines
-    Set-PositiveIntegerConfigValue -Key "codeHealthFeatureFreezeLines" -Value $config.validation.codeHealth.featureFreezeLines
-    Set-PositiveIntegerConfigValue -Key "codeHealthFailureLines" -Value $config.validation.codeHealth.failureLines
-    Set-PositiveIntegerConfigValue -Key "codeHealthMarkupWarningLines" -Value $config.validation.codeHealth.markupWarningLines
-    Set-PositiveIntegerConfigValue -Key "codeHealthMarkupFeatureFreezeLines" -Value $config.validation.codeHealth.markupFeatureFreezeLines
-    Set-PositiveIntegerConfigValue -Key "codeHealthMarkupFailureLines" -Value $config.validation.codeHealth.markupFailureLines
-    Set-PositiveIntegerConfigValue -Key "codeHealthMigrationWarningLines" -Value $config.validation.codeHealth.migrationWarningLines
-    Set-PositiveIntegerConfigValue -Key "codeHealthMigrationFeatureFreezeLines" -Value $config.validation.codeHealth.migrationFeatureFreezeLines
-    Set-PositiveIntegerConfigValue -Key "codeHealthMigrationFailureLines" -Value $config.validation.codeHealth.migrationFailureLines
-    Set-PositiveIntegerConfigValue -Key "codeHealthLongFunctionLines" -Value $config.validation.codeHealth.longFunctionLines
-    Set-PositiveIntegerConfigValue -Key "codeHealthRepeatedLineThreshold" -Value $config.validation.codeHealth.repeatedLineThreshold
-    Set-StringArrayConfigValue -Key "codeHealthExcludedPaths" -Value $config.validation.codeHealth.excludedPaths
-    Set-StringArrayConfigValue -Key "codeHealthExcludedPatterns" -Value $config.validation.codeHealth.excludedPatterns
-    Set-BooleanConfigValue -Key "autoCommitWorkUnit" -Value $config.versionControl.autoCommitWorkUnit
-    Set-PositiveIntegerConfigValue -Key "autoPushAfterFeatureCommits" -Value $config.versionControl.autoPushAfterFeatureCommits
-    Set-StringArrayConfigValue -Key "autoPushBranches" -Value $config.versionControl.autoPushBranches
-    Set-StringArrayConfigValue -Key "protectedBranches" -Value $config.versionControl.protectedBranches
-    Set-StringArrayConfigValue -Key "featureCommitTypes" -Value $config.versionControl.featureCommitTypes
-    Set-StringArrayConfigValue -Key "blockedPathPatterns" -Value $config.versionControl.blockedPathPatterns
-    Set-PositiveIntegerConfigValue -Key "largeFileBytes" -Value $config.versionControl.largeFileBytes
-    Set-StringArrayConfigValue -Key "largeOriginalDataPatterns" -Value $config.versionControl.largeOriginalDataPatterns
-    Set-StringArrayConfigValue -Key "workUnitCodePaths" -Value $config.versionControl.workUnitPaths.code
-    Set-StringArrayConfigValue -Key "workUnitTestPaths" -Value $config.versionControl.workUnitPaths.tests
-    Set-StringArrayConfigValue -Key "workUnitExecPlanCompletedPaths" -Value $config.versionControl.workUnitPaths.execPlansCompleted
-    Set-StringArrayConfigValue -Key "workUnitValidationPaths" -Value $config.versionControl.workUnitPaths.validation
+    $validation = $config.validation
+    if ($null -ne $validation) {
+        Set-PositiveIntegerConfigValue -Key "maintenanceFindingThreshold" -Value $validation.maintenanceFindingThreshold
+        Set-PositiveIntegerConfigValue -Key "staleActivePlanDays" -Value $validation.staleActivePlanDays
+        Set-PositiveIntegerConfigValue -Key "placeholderTodoThreshold" -Value $validation.placeholderTodoThreshold
+        Set-StringArrayConfigValue -Key "placeholderPatterns" -Value $validation.placeholderPatterns
+        Set-BooleanConfigValue -Key "requireExecPlanUsage" -Value $validation.requireExecPlanUsage
+
+        $codeHealth = $validation.codeHealth
+        if ($null -ne $codeHealth) {
+            Set-PositiveIntegerConfigValue -Key "codeHealthWarningLines" -Value $codeHealth.warningLines
+            Set-PositiveIntegerConfigValue -Key "codeHealthFeatureFreezeLines" -Value $codeHealth.featureFreezeLines
+            Set-PositiveIntegerConfigValue -Key "codeHealthFailureLines" -Value $codeHealth.failureLines
+            Set-PositiveIntegerConfigValue -Key "codeHealthMarkupWarningLines" -Value $codeHealth.markupWarningLines
+            Set-PositiveIntegerConfigValue -Key "codeHealthMarkupFeatureFreezeLines" -Value $codeHealth.markupFeatureFreezeLines
+            Set-PositiveIntegerConfigValue -Key "codeHealthMarkupFailureLines" -Value $codeHealth.markupFailureLines
+            Set-PositiveIntegerConfigValue -Key "codeHealthMigrationWarningLines" -Value $codeHealth.migrationWarningLines
+            Set-PositiveIntegerConfigValue -Key "codeHealthMigrationFeatureFreezeLines" -Value $codeHealth.migrationFeatureFreezeLines
+            Set-PositiveIntegerConfigValue -Key "codeHealthMigrationFailureLines" -Value $codeHealth.migrationFailureLines
+            Set-PositiveIntegerConfigValue -Key "codeHealthLongFunctionLines" -Value $codeHealth.longFunctionLines
+            Set-PositiveIntegerConfigValue -Key "codeHealthRepeatedLineThreshold" -Value $codeHealth.repeatedLineThreshold
+            Set-StringArrayConfigValue -Key "codeHealthExcludedPaths" -Value $codeHealth.excludedPaths
+            Set-StringArrayConfigValue -Key "codeHealthExcludedPatterns" -Value $codeHealth.excludedPatterns
+        }
+    }
+
+    $uiConformance = $null
+    if ($null -ne $validation) {
+        $uiConformance = $validation.uiConformance
+    }
+    if ($null -ne $uiConformance) {
+        Set-BooleanConfigValue -Key "uiConformanceEnabled" -Value $uiConformance.enabled
+        Set-StringArrayConfigValue -Key "uiConformanceTargetExtensions" -Value $uiConformance.targetExtensions
+        Set-StringArrayConfigValue -Key "uiConformanceExcludedPatterns" -Value $uiConformance.excludedPatterns
+
+        if ($null -ne $uiConformance.forbiddenPatterns) {
+            $parsedPatterns = @()
+
+            foreach ($entry in @($uiConformance.forbiddenPatterns)) {
+                $pattern = [string]$entry.pattern
+
+                if ([string]::IsNullOrWhiteSpace($pattern)) {
+                    Add-HarnessFailure -Check "config" -Metadata @{
+                        path = ".harness/config.json"
+                        key = "validation.uiConformance.forbiddenPatterns"
+                        reason = "missing_pattern"
+                    }
+                    continue
+                }
+
+                $reason = [string]$entry.reason
+                if ([string]::IsNullOrWhiteSpace($reason)) {
+                    $reason = "forbidden_pattern"
+                }
+
+                $parsedPatterns += @{ pattern = $pattern; reason = $reason }
+            }
+
+            $script:harnessConfig["uiConformanceForbiddenPatterns"] = $parsedPatterns
+        }
+    }
+
+    $versionControl = $config.versionControl
+    if ($null -ne $versionControl) {
+        Set-BooleanConfigValue -Key "autoCommitWorkUnit" -Value $versionControl.autoCommitWorkUnit
+        Set-PositiveIntegerConfigValue -Key "autoPushAfterFeatureCommits" -Value $versionControl.autoPushAfterFeatureCommits
+        Set-StringArrayConfigValue -Key "autoPushBranches" -Value $versionControl.autoPushBranches
+        Set-StringArrayConfigValue -Key "protectedBranches" -Value $versionControl.protectedBranches
+        Set-StringArrayConfigValue -Key "featureCommitTypes" -Value $versionControl.featureCommitTypes
+        Set-StringArrayConfigValue -Key "blockedPathPatterns" -Value $versionControl.blockedPathPatterns
+        Set-PositiveIntegerConfigValue -Key "largeFileBytes" -Value $versionControl.largeFileBytes
+        Set-StringArrayConfigValue -Key "largeOriginalDataPatterns" -Value $versionControl.largeOriginalDataPatterns
+
+        $workUnitPaths = $versionControl.workUnitPaths
+        if ($null -ne $workUnitPaths) {
+            Set-StringArrayConfigValue -Key "workUnitCodePaths" -Value $workUnitPaths.code
+            Set-StringArrayConfigValue -Key "workUnitTestPaths" -Value $workUnitPaths.tests
+            Set-StringArrayConfigValue -Key "workUnitExecPlanCompletedPaths" -Value $workUnitPaths.execPlansCompleted
+            Set-StringArrayConfigValue -Key "workUnitValidationPaths" -Value $workUnitPaths.validation
+        }
+    }
 
     if ($script:errorCount -eq $errorCountBeforeValidation) {
         Write-HarnessLog -Check "config" -Status "success" -Metadata @{

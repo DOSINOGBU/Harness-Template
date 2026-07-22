@@ -1,19 +1,16 @@
 name: Harness Validation
 
+# No pull_request paths filter on purpose: in a consuming project the CodeHealth /
+# UI conformance gates must run on product-code PRs (src/**, app/** ...) too.
+# A harness-only filter here silently exempted all product code from the gate.
 on:
   pull_request:
-    paths:
-      - "AGENTS.md"
-      - "ARCHITECTURE.md"
-      - "README.md"
-      - "CONTRIBUTING.md"
-      - ".github/**"
-      - ".harness/**"
-      - "docs/**"
-      - "scripts/**"
   schedule:
     - cron: "0 3 * * 1"
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   validate-harness:
@@ -39,3 +36,7 @@ jobs:
       - name: Run validator fixture tests
         shell: pwsh
         run: pwsh -File scripts/tests/run-validator-fixtures.ps1
+
+      - name: Run version control fixture tests
+        shell: pwsh
+        run: pwsh -File scripts/tests/run-version-control-fixtures.ps1

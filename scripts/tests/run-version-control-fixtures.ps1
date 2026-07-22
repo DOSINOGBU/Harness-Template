@@ -283,6 +283,37 @@ try {
         throw "commit-direct-docs expected clean working tree, got: $($directDocsStatus -join ' | ')"
     }
 
+    $partialOtherDocsFixture = New-VersionControlFixture -Name "partial-other-docs"
+    New-TextFile -Path (Join-Path $partialOtherDocsFixture "docs/NOTE.md") -Content "# Note`n"
+    $partialOtherDocsRecommend = Invoke-Recommend -RepoRoot $partialOtherDocsFixture -Arguments @("-VerificationStatus", "Partial")
+    Assert-ExitCode -Name "recommend-partial-other-docs" -Result $partialOtherDocsRecommend -ExpectedExitCode 0
+    Assert-OutputMatches -Name "recommend-partial-other-docs-hold" -Result $partialOtherDocsRecommend -Pattern "Commit: hold"
+    Assert-OutputMatches -Name "recommend-partial-other-docs-reason" -Result $partialOtherDocsRecommend -Pattern "CommitReason: partial_verification_blocks_other_docs"
+
+    $partialOtherDocsCommit = Invoke-CommitWorkUnit -RepoRoot $partialOtherDocsFixture -Arguments @("-VerificationStatus", "Partial")
+    if ($partialOtherDocsCommit.ExitCode -eq 0) {
+        throw "commit-partial-other-docs expected failure for Partial with DocsOther only"
+    }
+    Assert-OutputMatches -Name "commit-partial-other-docs" -Result $partialOtherDocsCommit -Pattern "VerificationStatus=Partial"
+
+    $dryRunFixture = New-VersionControlFixture -Name "commit-dry-run"
+    New-TextFile -Path (Join-Path $dryRunFixture "src/dry.ps1") -Content "'dry'`n"
+    $dryRunBefore = @(Invoke-CheckedGit -RepoRoot $dryRunFixture -Arguments @("rev-list", "--count", "HEAD"))[0]
+    $dryRunResult = Invoke-CommitWorkUnit -RepoRoot $dryRunFixture -Arguments @("-VerificationStatus", "Passed", "-Type", "feat", "-Scope", "dry", "-Summary", "dry run probe", "-DryRun")
+    Assert-ExitCode -Name "commit-dry-run" -Result $dryRunResult -ExpectedExitCode 0
+    Assert-OutputMatches -Name "commit-dry-run-log" -Result $dryRunResult -Pattern "dry_run_complete"
+    $dryRunAfter = @(Invoke-CheckedGit -RepoRoot $dryRunFixture -Arguments @("rev-list", "--count", "HEAD"))[0]
+
+    if ($dryRunBefore -ne $dryRunAfter) {
+        throw "commit-dry-run expected no new commits, before=$dryRunBefore after=$dryRunAfter"
+    }
+
+    $dryRunStatus = @(Invoke-CheckedGit -RepoRoot $dryRunFixture -Arguments @("status", "--short"))
+
+    if ($dryRunStatus.Count -eq 0) {
+        throw "commit-dry-run expected dirty tree after dry run"
+    }
+
     $blockedFixture = New-VersionControlFixture -Name "blocked-env"
     New-TextFile -Path (Join-Path $blockedFixture ".env") -Content "TOKEN=secret`n"
     $blockedResult = Invoke-Recommend -RepoRoot $blockedFixture -Arguments @("-VerificationStatus", "Passed")

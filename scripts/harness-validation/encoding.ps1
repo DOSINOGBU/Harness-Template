@@ -19,20 +19,6 @@ function Get-DocumentationEncodingFiles {
     return @($files | Sort-Object FullName -Unique)
 }
 
-function New-StringFromCodePoints {
-    param(
-        [int[]]$CodePoints
-    )
-
-    $characters = @()
-
-    foreach ($codePoint in $CodePoints) {
-        $characters += [char]$codePoint
-    }
-
-    return -join $characters
-}
-
 function Get-LineNumberFromByteIndex {
     param(
         [byte[]]$Bytes,
@@ -88,20 +74,20 @@ function Get-MojibakeSuspicion {
         [string]$Content
     )
 
-    $replacementCharacter = [regex]::Escape((New-StringFromCodePoints -CodePoints @(0xFFFD)))
+    $replacementCharacter = [regex]::Escape((ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0xFFFD)))
     $knownMojibakeTokens = @(
-        ("?" + (New-StringFromCodePoints -CodePoints @(0x0080))),
-        ("?" + (New-StringFromCodePoints -CodePoints @(0xAFA9))),
-        ("?" + (New-StringFromCodePoints -CodePoints @(0xBA2F))),
-        ("?" + (New-StringFromCodePoints -CodePoints @(0xC496)))
+        ("?" + (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0x0080))),
+        ("?" + (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0xAFA9))),
+        ("?" + (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0xBA2F))),
+        ("?" + (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0xC496)))
     )
     $latinMojibakePrefixes = @(
-        (New-StringFromCodePoints -CodePoints @(0x00EC)),
-        (New-StringFromCodePoints -CodePoints @(0x00ED)),
-        (New-StringFromCodePoints -CodePoints @(0x00EB)),
-        (New-StringFromCodePoints -CodePoints @(0x00EA)),
-        (New-StringFromCodePoints -CodePoints @(0x00C3)),
-        (New-StringFromCodePoints -CodePoints @(0x00C2))
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0x00EC)),
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0x00ED)),
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0x00EB)),
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0x00EA)),
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0x00C3)),
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(0x00C2))
     )
     $latinMojibakePattern = (($latinMojibakePrefixes | ForEach-Object { [regex]::Escape($_) }) -join "|")
     $patterns = @(

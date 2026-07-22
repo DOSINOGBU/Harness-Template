@@ -1,4 +1,5 @@
 {
+  "$schema": "./config.schema.json",
   "validation": {
     "maintenanceFindingThreshold": 5,
     "staleActivePlanDays": 14,
@@ -11,6 +12,43 @@
       "???"
     ],
     "requireExecPlanUsage": true,
+    "uiConformance": {
+      "enabled": true,
+      "targetExtensions": [
+        ".astro",
+        ".css",
+        ".jsx",
+        ".less",
+        ".sass",
+        ".scss",
+        ".svelte",
+        ".tsx",
+        ".vue"
+      ],
+      "excludedPatterns": [
+        "**/globals.css",
+        "**/tokens.css",
+        "**/*.tokens.*"
+      ],
+      "forbiddenPatterns": [
+        {
+          "pattern": "#[0-9a-fA-F]{6}\\b",
+          "reason": "hardcoded_hex_color"
+        },
+        {
+          "pattern": "\\b(?:bg-white|bg-black\\b|(?:bg|text|border)-(?:emerald|red|green|blue|slate|gray|zinc|amber|rose)-\\d{2,3})\\b",
+          "reason": "palette_literal"
+        },
+        {
+          "pattern": "@import\\s+url\\(\\s*[\"']?https?://",
+          "reason": "cdn_font_import"
+        },
+        {
+          "pattern": "from\\s+[\"']@tabler/",
+          "reason": "forbidden_icon_package"
+        }
+      ]
+    },
     "codeHealth": {
       "warningLines": 500,
       "featureFreezeLines": 800,

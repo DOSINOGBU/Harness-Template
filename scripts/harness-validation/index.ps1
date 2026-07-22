@@ -21,6 +21,15 @@ function Test-RequiredPath {
 
 function Test-AgentsRequiredReading {
     $agentsPath = Resolve-RepoRelativePath -RelativePath "AGENTS.md"
+
+    if (-not (Test-Path -LiteralPath $agentsPath)) {
+        Add-HarnessFailure -Check "required-reading" -Metadata @{
+            path = "AGENTS.md"
+            reason = "missing"
+        }
+        return
+    }
+
     $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $agentsPath
     $requiredReading = Get-MarkdownSection -Content $content -Heading "Required Reading"
     $paths = Get-BacktickPaths -Content $requiredReading
@@ -36,6 +45,15 @@ function Test-AgentsRequiredReading {
 
 function Test-DocsCoreDocuments {
     $docsReadmePath = Resolve-RepoRelativePath -RelativePath "docs/README.md"
+
+    if (-not (Test-Path -LiteralPath $docsReadmePath)) {
+        Add-HarnessFailure -Check "docs-core-document" -Metadata @{
+            path = "docs/README.md"
+            reason = "missing"
+        }
+        return
+    }
+
     $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $docsReadmePath
     $coreDocuments = Get-MarkdownSection -Content $content -Heading "Core Documents"
     $paths = Get-BacktickPaths -Content $coreDocuments
@@ -57,6 +75,15 @@ function Test-HarnessIndexSection {
     )
 
     $harnessReadmePath = Resolve-RepoRelativePath -RelativePath ".harness/README.md"
+
+    if (-not (Test-Path -LiteralPath $harnessReadmePath)) {
+        Add-HarnessFailure -Check $Check -Metadata @{
+            path = ".harness/README.md"
+            reason = "missing"
+        }
+        return
+    }
+
     $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $harnessReadmePath
     $section = Get-MarkdownSection -Content $content -Heading $SectionName
     $paths = Get-BacktickPaths -Content $section

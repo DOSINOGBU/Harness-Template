@@ -90,6 +90,10 @@ elseif ($VerificationStatus -eq "Partial" -and $hasFeatureChanges) {
     $commitStatus = "hold"
     $commitReason = "partial_verification_blocks_code_commit"
 }
+elseif ($VerificationStatus -eq "Partial" -and $changeSummary.DocsOther.Count -gt 0 -and $changeSummary.WorkUnitDocs.Count -eq 0) {
+    $commitStatus = "hold"
+    $commitReason = "partial_verification_blocks_other_docs"
+}
 elseif ($hasFeatureChanges -and $hasWorkUnitDocs) {
     if ($VerificationStatus -eq "Passed") {
         $commitStatus = "auto_split_recommended"

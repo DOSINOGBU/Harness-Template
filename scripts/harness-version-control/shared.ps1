@@ -390,13 +390,29 @@ function Get-HarnessUpstreamState {
     }
 
     $countOutput = @(Invoke-HarnessGit -RepoRoot $RepoRoot -Arguments @("rev-list", "--left-right", "--count", "HEAD...@{u}"))
-    $parts = @(([string]$countOutput[0]).Trim() -split "\s+")
+    $line = if ($countOutput.Count -gt 0) { ([string]$countOutput[0]).Trim() } else { "" }
+    $parts = @($line -split "\s+")
+    $ahead = 0
+    $behind = 0
+
+    if (
+        $parts.Count -lt 2 -or
+        -not [int]::TryParse($parts[0], [ref]$ahead) -or
+        -not [int]::TryParse($parts[1], [ref]$behind)
+    ) {
+        return [pscustomobject]@{
+            HasUpstream = $true
+            Upstream = [string]$upstreamOutput
+            Ahead = 0
+            Behind = 1
+        }
+    }
 
     return [pscustomobject]@{
         HasUpstream = $true
         Upstream = [string]$upstreamOutput
-        Ahead = [int]$parts[0]
-        Behind = [int]$parts[1]
+        Ahead = $ahead
+        Behind = $behind
     }
 }
 

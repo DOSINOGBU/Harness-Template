@@ -4,11 +4,24 @@ function Get-HarnessRegisteredNames {
     )
 
     $harnessReadmePath = Resolve-RepoRelativePath -RelativePath ".harness/README.md"
+
+    if (-not (Test-Path -LiteralPath $harnessReadmePath)) {
+        return $null
+    }
+
     $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $harnessReadmePath
     $section = Get-MarkdownSection -Content $content -Heading $SectionName
     $paths = Get-BacktickPaths -Content $section
 
-    return @($paths | ForEach-Object { [IO.Path]::GetFileName($_) } | Sort-Object -Unique)
+    # Avoid `return @($paths | ...)` on an empty pipeline — in Windows PowerShell it becomes $null, not @().
+    $names = @(
+        $paths |
+            ForEach-Object { [IO.Path]::GetFileName($_) } |
+            Sort-Object -Unique
+    )
+
+    # Unary comma: returning a bare empty @() from a function becomes $null for the caller in Windows PowerShell.
+    return ,$names
 }
 
 function Test-UnregisteredHarnessFiles {
@@ -19,8 +32,27 @@ function Test-UnregisteredHarnessFiles {
         [bool]$Strict
     )
 
-    $registeredNames = @(Get-HarnessRegisteredNames -SectionName $SectionName)
+    $registeredNames = Get-HarnessRegisteredNames -SectionName $SectionName
+
+    if ($null -eq $registeredNames) {
+        Add-HarnessFailure -Check $Check -Metadata @{
+            path = ".harness/README.md"
+            reason = "missing"
+        }
+        return
+    }
+
+    $registeredNames = @($registeredNames)
     $folderPath = Resolve-RepoRelativePath -RelativePath $Folder
+
+    if (-not (Test-Path -LiteralPath $folderPath)) {
+        Add-HarnessFailure -Check $Check -Metadata @{
+            path = $Folder
+            reason = "folder_missing"
+        }
+        return
+    }
+
     $files = @(Get-ChildItem -LiteralPath $folderPath -Filter "*.md" -File)
     $missingCount = 0
 
@@ -44,6 +76,107 @@ function Test-UnregisteredHarnessFiles {
     }
 }
 
+function Test-UnregisteredDocsRootFiles {
+    param(
+        [bool]$Strict
+    )
+
+    $docsReadmePath = Resolve-RepoRelativePath -RelativePath "docs/README.md"
+
+    if (-not (Test-Path -LiteralPath $docsReadmePath)) {
+        Add-HarnessFailure -Check "maintenance-unregistered-doc" -Metadata @{
+            path = "docs/README.md"
+            reason = "missing"
+        }
+        return
+    }
+
+    $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $docsReadmePath
+    # Registration = any backtick mention anywhere in docs/README.md (Core Documents or tier tables).
+    # Assign before piping: Get-BacktickPaths returns ,$paths and piping the call
+    # directly would pass the whole array as a single pipeline item.
+    $registeredPaths = Get-BacktickPaths -Content $content
+    $registeredNames = @(
+        $registeredPaths |
+            ForEach-Object { [IO.Path]::GetFileName($_) } |
+            Sort-Object -Unique
+    )
+    $docsFolder = Resolve-RepoRelativePath -RelativePath "docs"
+    $files = @(Get-ChildItem -LiteralPath $docsFolder -Filter "*.md" -File)
+    $missingCount = 0
+
+    foreach ($file in $files) {
+        if ($file.Name -eq "README.md" -or $registeredNames -contains $file.Name) {
+            continue
+        }
+
+        $missingCount += 1
+        Add-MaintenanceFinding -Check "maintenance-unregistered-doc" -Metadata @{
+            path = "docs/$($file.Name)"
+            reason = "not_registered_in_docs_readme"
+            strict = $Strict
+        }
+    }
+
+    if ($missingCount -eq 0) {
+        Write-HarnessLog -Check "maintenance-unregistered-doc" -Status "success" -Metadata @{
+            count = $files.Count
+        }
+    }
+}
+
+function Test-ArtifactNaming {
+    param(
+        [bool]$Strict
+    )
+
+    # Dated artifact folders (docs/ARTIFACTS.md): YYYY-MM-DD-kebab-case.md, README.md exempt.
+    $artifactFolders = @(
+        "docs/analysis",
+        "docs/agent-runs",
+        "docs/validation"
+    )
+    $namePattern = '^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$'
+    $scannedCount = 0
+    $findingCount = 0
+
+    foreach ($folder in $artifactFolders) {
+        $folderPath = Resolve-RepoRelativePath -RelativePath $folder
+
+        if (-not (Test-Path -LiteralPath $folderPath)) {
+            continue
+        }
+
+        $files = @(Get-ChildItem -LiteralPath $folderPath -Recurse -Filter "*.md" -File)
+
+        foreach ($file in $files) {
+            if ($file.Name -eq "README.md") {
+                continue
+            }
+
+            $scannedCount += 1
+
+            if ($file.Name -match $namePattern) {
+                continue
+            }
+
+            $findingCount += 1
+            Add-MaintenanceFinding -Check "maintenance-artifact-naming" -Metadata @{
+                path = Get-RepoRelativePath -FullPath $file.FullName
+                reason = "bad_artifact_name"
+                expected = "YYYY-MM-DD-kebab-case.md"
+                strict = $Strict
+            }
+        }
+    }
+
+    if ($findingCount -eq 0) {
+        Write-HarnessLog -Check "maintenance-artifact-naming" -Status "success" -Metadata @{
+            scanned = $scannedCount
+        }
+    }
+}
+
 function Test-StaleActivePlans {
     param(
         [bool]$Strict
@@ -52,7 +185,11 @@ function Test-StaleActivePlans {
     $activePlanFolder = Resolve-RepoRelativePath -RelativePath "docs/exec-plans/active"
     $thresholdDays = $script:harnessConfig.staleActivePlanDays
     $cutoff = (Get-Date).AddDays(-1 * $thresholdDays)
-    $files = @(Get-ChildItem -LiteralPath $activePlanFolder -Filter "*.md" -File)
+    $files = @()
+
+    if (Test-Path -LiteralPath $activePlanFolder) {
+        $files = @(Get-ChildItem -LiteralPath $activePlanFolder -Filter "*.md" -File)
+    }
     $staleCount = 0
 
     foreach ($file in $files) {
@@ -114,7 +251,11 @@ function Test-GeneratedTodoTimestamps {
     )
 
     $generatedFolder = Resolve-RepoRelativePath -RelativePath "docs/generated"
-    $files = @(Get-ChildItem -LiteralPath $generatedFolder -Filter "*.md" -File)
+    $files = @()
+
+    if (Test-Path -LiteralPath $generatedFolder) {
+        $files = @(Get-ChildItem -LiteralPath $generatedFolder -Filter "*.md" -File)
+    }
     $todoCount = 0
 
     foreach ($file in $files) {
@@ -146,7 +287,12 @@ function Test-PlaceholderDensity {
 
     $threshold = $script:harnessConfig.placeholderTodoThreshold
     $files = @(Get-ChildItem -LiteralPath $repoRoot -Recurse -Filter "*.md" -File |
-        Where-Object { $_.FullName -notmatch "\\.git\\" })
+        Where-Object {
+            $full = $_.FullName
+            $full -notmatch '\\\.git\\' -and
+            $full -notmatch '\\node_modules\\' -and
+            $full -notmatch '\\(?:vendor|dist|build|coverage)\\'
+        })
     $findingCount = 0
 
     foreach ($file in $files) {
@@ -328,14 +474,6 @@ function Test-ExecPlanHeadingSet {
     return $findingCount
 }
 
-function ConvertFrom-CodePoints {
-    param(
-        [int[]]$CodePoints
-    )
-
-    return -join ($CodePoints | ForEach-Object { [char]$_ })
-}
-
 function Test-ExecPlanFormat {
     param(
         [bool]$Strict
@@ -356,12 +494,12 @@ function Test-ExecPlanFormat {
         "Result"
     )
     $requiredResultHeadings = @(
-        (ConvertFrom-CodePoints -CodePoints @(50836, 52397, 32, 54869, 51064)),
-        (ConvertFrom-CodePoints -CodePoints @(48320, 44221, 32, 49324, 54637)),
-        (ConvertFrom-CodePoints -CodePoints @(44160, 51613)),
-        (ConvertFrom-CodePoints -CodePoints @(44208, 44284, 32, 54869, 51064)),
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(50836, 52397, 32, 54869, 51064)),
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(48320, 44221, 32, 49324, 54637)),
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(44160, 51613)),
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(44208, 44284, 32, 54869, 51064)),
         "CodeHealth",
-        (ConvertFrom-CodePoints -CodePoints @(47532, 49828, 53356, 50752, 32, 45796, 51020, 32, 54032, 45800))
+        (ConvertFrom-HarnessUnicodeCodePoints -CodePoints @(47532, 49828, 53356, 50752, 32, 45796, 51020, 32, 54032, 45800))
     )
     $planFolders = @(
         "docs/exec-plans/active",
@@ -428,8 +566,17 @@ function Test-ExecPlanUsage {
 
     $activePlanFolder = Resolve-RepoRelativePath -RelativePath "docs/exec-plans/active"
     $completedPlanFolder = Resolve-RepoRelativePath -RelativePath "docs/exec-plans/completed"
-    $activePlans = @(Get-ChildItem -LiteralPath $activePlanFolder -Filter "*.md" -File)
-    $completedPlans = @(Get-ChildItem -LiteralPath $completedPlanFolder -Filter "*.md" -File)
+    $activePlans = @()
+
+    if (Test-Path -LiteralPath $activePlanFolder) {
+        $activePlans = @(Get-ChildItem -LiteralPath $activePlanFolder -Filter "*.md" -File)
+    }
+
+    $completedPlans = @()
+
+    if (Test-Path -LiteralPath $completedPlanFolder) {
+        $completedPlans = @(Get-ChildItem -LiteralPath $completedPlanFolder -Filter "*.md" -File)
+    }
     $planCount = $activePlans.Count + $completedPlans.Count
 
     if ($planCount -gt 0) {
@@ -460,6 +607,8 @@ function Test-MaintenanceDrift {
 
     Test-UnregisteredHarnessFiles -SectionName "Checklists" -Folder ".harness/checklists" -Check "maintenance-unregistered-checklist" -Strict:$Strict
     Test-UnregisteredHarnessFiles -SectionName "Prompts" -Folder ".harness/prompts" -Check "maintenance-unregistered-prompt" -Strict:$Strict
+    Test-UnregisteredDocsRootFiles -Strict:$Strict
+    Test-ArtifactNaming -Strict:$Strict
     Test-StaleActivePlans -Strict:$Strict
     Test-ExecPlanFormat -Strict:$Strict
     Test-GeneratedTodoTimestamps -Strict:$Strict

@@ -94,7 +94,7 @@ function Get-BacktickPaths {
         $paths += $match.Groups[1].Value
     }
 
-    return $paths
+    return ,$paths
 }
 
 function Resolve-RepoRelativePath {
@@ -114,4 +114,16 @@ function Get-RepoRelativePath {
     $rootUri = New-Object System.Uri (($repoRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar))
     $fileUri = New-Object System.Uri $FullPath
     return [Uri]::UnescapeDataString($rootUri.MakeRelativeUri($fileUri).ToString())
+}
+
+function ConvertFrom-HarnessUnicodeCodePoints {
+    param(
+        [int[]]$CodePoints
+    )
+
+    if ($null -eq $CodePoints -or $CodePoints.Count -eq 0) {
+        return ""
+    }
+
+    return -join ($CodePoints | ForEach-Object { [char]$_ })
 }

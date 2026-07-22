@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+    표준 작업 단위에 맞춰 스테이징된 변경을 기능 커밋과 문서 커밋으로 나눕니다.
+
+.DESCRIPTION
+    변경 경로를 work unit 규칙으로 분류한 뒤, 차단 경로·무관 변경·혼합 문서·검증 상태를 검사합니다.
+    -DryRun이면 git add/commit을 하지 않고 계획만 로그합니다.
+
+.PARAMETER RepoRoot
+    Git 저장소 루트(기본: 이 스크립트의 상위 디렉터리).
+
+.PARAMETER VerificationStatus
+    Passed일 때만 기능/테스트 커밋을 허용합니다. Partial일 때는 exec-plan 완료·validation 경로만 문서 커밋을 허용하고, 그 밖의 문서·저장소 위생 경로는 거절합니다.
+
+.PARAMETER DryRun
+    커밋을 만들지 않고 어떤 커밋이 나갈지 로그만 남깁니다.
+
+.PARAMETER DocsMessage
+    문서 커밋 한 줄 메시지를 덮어씁니다(비우면 New-HarnessDocsCommitMessage 규칙 사용).
+#>
 param(
     [string]$RepoRoot = (Join-Path $PSScriptRoot ".."),
     [ValidateSet("Passed", "Failed", "Partial", "Unknown")]
@@ -7,7 +27,8 @@ param(
     [string]$Scope,
     [string]$Summary,
     [string]$CodeMessage,
-    [string]$DocsMessage
+    [string]$DocsMessage,
+    [switch]$DryRun
 )
 
 $ErrorActionPreference = "Stop"
@@ -39,7 +60,10 @@ function Assert-CleanCommitMessage {
         throw "$Kind commit message is required."
     }
 
-    if ($Message -match '\b(update|fix stuff|changes)\b') {
+    if ([regex]::IsMatch(
+            $Message,
+            '\b(update|fix stuff|changes)\b',
+            [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)) {
         throw "$Kind commit message is too vague: $Message"
     }
 }
@@ -66,11 +90,51 @@ function Invoke-CommitPathSet {
         return
     }
 
+    if ($DryRun) {
+        return
+    }
+
     $addArguments = @("add", "--") + @($Paths)
     $commitArguments = @("commit", "-m", $Message, "--") + @($Paths)
 
     Invoke-HarnessGit -RepoRoot $repoRootPath -Arguments $addArguments | Out-Null
     Invoke-HarnessGit -RepoRoot $repoRootPath -Arguments $commitArguments | Out-Null
+}
+
+function Invoke-WorkUnitDocsCommit {
+    param(
+        [object]$ChangeSummary,
+        [string[]]$Paths,
+        [string]$BucketLabel
+    )
+
+    if ($Paths.Count -eq 0) {
+        return
+    }
+
+    $docsCommitMessage = $DocsMessage
+
+    if ([string]::IsNullOrWhiteSpace($docsCommitMessage)) {
+        $docsCommitMessage = New-HarnessDocsCommitMessage -Summary $ChangeSummary
+    }
+
+    Assert-CleanCommitMessage -Message $docsCommitMessage -Kind "Docs"
+    Invoke-CommitPathSet -Paths $Paths -Message $docsCommitMessage
+
+    if (-not $DryRun) {
+        Write-WorkUnitLog -Status "committed_docs" -Metadata @{
+            message = $docsCommitMessage
+            paths = ($Paths -join ", ")
+            bucket = $BucketLabel
+        }
+    }
+    else {
+        Write-WorkUnitLog -Status "dry_run_docs" -Metadata @{
+            message = $docsCommitMessage
+            paths = ($Paths -join ", ")
+            bucket = $BucketLabel
+        }
+    }
 }
 
 if (-not (Test-HarnessGitRepository -RepoRoot $repoRootPath)) {
@@ -114,6 +178,11 @@ if ($hasFeatureChanges -and $VerificationStatus -ne "Passed") {
     throw "Feature/test changes require VerificationStatus=Passed before commit."
 }
 
+if ($VerificationStatus -eq "Partial" -and $hasDocsOtherChanges -and -not $hasWorkUnitDocs) {
+    $blockedOtherDocs = @($summaryObject.DocsOther) -join ", "
+    throw "VerificationStatus=Partial allows only exec-plan or validation documentation commits; other documentation or repo hygiene paths are blocked: $blockedOtherDocs"
+}
+
 if (-not $hasFeatureChanges -and -not $hasWorkUnitDocs -and -not $hasDocsOtherChanges) {
     throw "No feature/test or documentation changes were found."
 }
@@ -122,46 +191,39 @@ if ($hasFeatureChanges) {
     $codeCommitMessage = Get-CodeCommitMessage
     Assert-CleanCommitMessage -Message $codeCommitMessage -Kind "Code"
     Invoke-CommitPathSet -Paths $summaryObject.Feature -Message $codeCommitMessage
-    Write-WorkUnitLog -Status "committed_code" -Metadata @{
-        message = $codeCommitMessage
-        paths = ($summaryObject.Feature -join ", ")
+
+    if (-not $DryRun) {
+        Write-WorkUnitLog -Status "committed_code" -Metadata @{
+            message = $codeCommitMessage
+            paths = ($summaryObject.Feature -join ", ")
+        }
+    }
+    else {
+        Write-WorkUnitLog -Status "dry_run_code" -Metadata @{
+            message = $codeCommitMessage
+            paths = ($summaryObject.Feature -join ", ")
+        }
     }
 }
 
-if ($hasWorkUnitDocs) {
-    $docsCommitMessage = $DocsMessage
+Invoke-WorkUnitDocsCommit -ChangeSummary $summaryObject -Paths $summaryObject.WorkUnitDocs -BucketLabel "work_unit"
+Invoke-WorkUnitDocsCommit -ChangeSummary $summaryObject -Paths $summaryObject.DocsOther -BucketLabel "other_docs"
 
-    if ([string]::IsNullOrWhiteSpace($docsCommitMessage)) {
-        $docsCommitMessage = New-HarnessDocsCommitMessage -Summary $summaryObject
-    }
+if (-not $DryRun) {
+    $remainingPaths = @(Get-HarnessChangedPaths -RepoRoot $repoRootPath)
 
-    Assert-CleanCommitMessage -Message $docsCommitMessage -Kind "Docs"
-    Invoke-CommitPathSet -Paths $summaryObject.WorkUnitDocs -Message $docsCommitMessage
-    Write-WorkUnitLog -Status "committed_docs" -Metadata @{
-        message = $docsCommitMessage
-        paths = ($summaryObject.WorkUnitDocs -join ", ")
+    if ($remainingPaths.Count -gt 0) {
+        throw "Work-unit commit finished with remaining changes: $($remainingPaths -join ', ')"
     }
 }
+else {
+    $remainingPaths = @(Get-HarnessChangedPaths -RepoRoot $repoRootPath)
 
-if ($hasDocsOtherChanges) {
-    $docsCommitMessage = $DocsMessage
-
-    if ([string]::IsNullOrWhiteSpace($docsCommitMessage)) {
-        $docsCommitMessage = New-HarnessDocsCommitMessage -Summary $summaryObject
+    if ($remainingPaths.Count -gt 0) {
+        Write-WorkUnitLog -Status "dry_run_remaining_paths" -Metadata @{
+            paths = ($remainingPaths -join ", ")
+        }
     }
-
-    Assert-CleanCommitMessage -Message $docsCommitMessage -Kind "Docs"
-    Invoke-CommitPathSet -Paths $summaryObject.DocsOther -Message $docsCommitMessage
-    Write-WorkUnitLog -Status "committed_docs" -Metadata @{
-        message = $docsCommitMessage
-        paths = ($summaryObject.DocsOther -join ", ")
-    }
-}
-
-$remainingPaths = @(Get-HarnessChangedPaths -RepoRoot $repoRootPath)
-
-if ($remainingPaths.Count -gt 0) {
-    throw "Work-unit commit finished with remaining changes: $($remainingPaths -join ', ')"
 }
 
 $commitCount = 0
@@ -178,7 +240,8 @@ if ($hasDocsOtherChanges) {
     $commitCount += 1
 }
 
-Write-WorkUnitLog -Status "complete" -Metadata @{
+Write-WorkUnitLog -Status $(if ($DryRun) { "dry_run_complete" } else { "complete" }) -Metadata @{
     repoRoot = $repoRootPath
     commits = $commitCount
+    dryRun = [string]$DryRun
 }

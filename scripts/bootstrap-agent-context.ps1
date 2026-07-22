@@ -1,3 +1,24 @@
+<#
+.SYNOPSIS
+    저장소를 읽기 전용으로 요약해 에이전트 시작 컨텍스트 로그를 출력합니다.
+
+.DESCRIPTION
+    최상위 레이아웃, AGENTS.md 필수 문서 경로 존재 여부, docs/TESTING.md 명령 표,
+    일반 런타임 도구 가용성, git 상태, 마크다운 placeholder 요약, 실행 계획 개수를
+    [AgentContext] 형식으로 표시합니다. 파일을 수정하지 않습니다.
+
+.PARAMETER RepoRoot
+    요약할 Git 저장소 루트 경로입니다. 기본값은 이 스크립트 위치 기준 상위 디렉터리입니다.
+
+.PARAMETER MaxFiles
+    layout file-sample에 포함할 상대 경로 샘플의 최대 개수입니다.
+
+.EXAMPLE
+    powershell -ExecutionPolicy Bypass -File scripts/bootstrap-agent-context.ps1
+
+.EXAMPLE
+    powershell -ExecutionPolicy Bypass -File scripts/bootstrap-agent-context.ps1 -RepoRoot "D:\my\repo" -MaxFiles 40
+#>
 param(
     [string]$RepoRoot = (Join-Path $PSScriptRoot ".."),
     [int]$MaxFiles = 80
@@ -5,7 +26,17 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# 한글 등 유니코드 로그가 Windows 콘솔에서 깨지지 않도록 출력 인코딩을 UTF-8로 맞춥니다.
+$script:__utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = $script:__utf8NoBom
+$OutputEncoding = $script:__utf8NoBom
+
 $repoRootPath = (Resolve-Path $RepoRoot).Path
+
+function Write-IoEncodingMarker {
+    # ASCII-only: helps agents detect that UTF-8 console output was requested (avoids guessing from mojibake).
+    Write-Host "[AgentContext] io encoding { console_output=utf8 }"
+}
 
 function Write-AgentContextLog {
     param(
@@ -200,11 +231,27 @@ function Write-GitStatus {
         return
     }
 
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $statusLines = @()
+    $gitExit = $null
     try {
-        $statusLines = @(git -C $repoRootPath status --short)
+        $statusLines = @(& git -C $repoRootPath status --short 2>&1 | ForEach-Object { "$_" })
+        $gitExit = $LASTEXITCODE
     }
     catch {
         Write-AgentContextLog -Section "git" -Status "error" -Metadata @{ error = $_.Exception.Message }
+        return
+    }
+    finally {
+        $ErrorActionPreference = $prevEap
+    }
+
+    if (($null -ne $gitExit) -and ($gitExit -ne 0)) {
+        Write-AgentContextLog -Section "git" -Status "error" -Metadata @{
+            exitCode = $gitExit
+            error = ($statusLines -join " | ")
+        }
         return
     }
 
@@ -243,9 +290,13 @@ function Write-PlaceholderSummary {
     }
 
     $topResults = @($results | Sort-Object count -Descending | Select-Object -First 8)
+    $placeholderTotal = ($results | Measure-Object -Property count -Sum).Sum
+    if ($null -eq $placeholderTotal) {
+        $placeholderTotal = 0
+    }
     Write-AgentContextLog -Section "placeholders" -Status "summary" -Metadata @{
         files = $results.Count
-        total = (($results | Measure-Object -Property count -Sum).Sum)
+        total = $placeholderTotal
     }
 
     foreach ($result in $topResults) {
@@ -267,6 +318,8 @@ function Write-PlanSummary {
         completed = $completedPlans.Count
     }
 }
+
+Write-IoEncodingMarker
 
 Write-AgentContextLog -Section "bootstrap" -Status "start" -Metadata @{
     repoRoot = $repoRootPath

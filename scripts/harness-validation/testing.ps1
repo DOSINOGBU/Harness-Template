@@ -6,6 +6,15 @@ function Test-TestingTodos {
     )
 
     $testingPath = Resolve-RepoRelativePath -RelativePath "docs/TESTING.md"
+
+    if (-not (Test-Path -LiteralPath $testingPath)) {
+        Add-HarnessFailure -Check "testing-command-row" -Metadata @{
+            path = "docs/TESTING.md"
+            reason = "missing"
+        }
+        return
+    }
+
     $lines = Get-Content -Encoding UTF8 -LiteralPath $testingPath
     $commandRows = Get-TestingCommandRows -Lines $lines
     Test-TestingCommandRows -Rows $commandRows
