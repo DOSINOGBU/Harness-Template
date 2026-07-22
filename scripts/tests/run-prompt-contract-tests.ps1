@@ -64,7 +64,11 @@ $contracts = @(
         "sendPrompt",
         "EVIDENCE_RECORDED",
         "reporting.json",
-        $glossPhrase
+        $glossPhrase,
+        "19px/500",
+        "minmax(180px,1fr)",
+        "15px/500",
+        "12px muted"
     ) },
     @{ Path = "AGENTS.md"; Phrases = @(
         "REPORTING.md",
