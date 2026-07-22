@@ -1,6 +1,6 @@
 # Validation: five star roadmap implementation
 
-Tree hash: `89f4fa5`
+Base commit: `c2cdd92`
 
 ## Scope
 
