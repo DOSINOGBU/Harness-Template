@@ -14,6 +14,8 @@
 - 대화 중간에 사용자가 기능을 추가·확장하더라도, 먼저 짧은 계획(범위·접근·영향 파일·검증)을 사용자에게 보여 주고, 불명확한 점은 질문한 뒤, 사용자가 그 계획과 답에 대해 확인한 다음에만 코드·문서 본문 수정을 진행합니다(상세는 `docs/AGENT_BEHAVIOR.md`, `docs/WORKFLOW.md`).
 - 작업 중 새 기능 범위·새 라이브러리·큰 구조 변경·삭제 작업이 보이면 바로 구현하지 말고 active exec-plan을 먼저 만들거나 갱신합니다(상세 규칙은 `docs/exec-plans/README.md`, `docs/AGENT_BEHAVIOR.md`).
 - 체크리스트·프롬프트 목록은 `.harness/README.md`에서 확인합니다.
+- **작업 위임**: 가벼운 읽기성 작업(탐색·조사·반복 스캔·독립 검증)은 하위 에이전트에 병렬 위임하고, 무거운 작업(설계·규칙 결정, 상호 의존 수정, 커밋·병합, 사용자 결재)은 메인 상위 모델이 메인 채팅에서 직접 수행합니다(상세: `docs/WORKFLOW.md`의 Delegation Policy).
+- **이름 규칙**: 새 파일·폴더는 `docs/NAMING.md`의 통일 표를 따릅니다(공백·버전 접미·표기 혼용 금지).
 
 ## Intent Routing
 
@@ -44,6 +46,7 @@
 | UI·화면·스타일 변경           | `docs/UI_RULES.md`(필수 선행), `docs/FRONTEND.md`                                                                                    |
 | 프론트엔드·백엔드 영역 변경(해당 시) | `docs/FRONTEND.md`, `docs/BACKEND.md`                                                                                              |
 | 분석·보고서·기록 문서 생성        | `docs/ARTIFACTS.md`                                                                                                                |
+| 새 파일·폴더 이름 짓기          | `docs/NAMING.md`                                                                                                                   |
 | 결과 보고 작성(비쥬얼라이즈)      | `docs/REPORTING.md`                                                                                                                |
 | exec-plan 없는 즉석 수정 요청   | `.harness/prompts/quick-task.md`                                                                                                   |
 | 보안/권한·인프라/환경변수/시크릿    | `docs/INFRASTRUCTURE.md`, `docs/SECURITY.md`                                                                                       |

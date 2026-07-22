@@ -146,8 +146,13 @@ $script:harnessConfig = @{
     hygieneExceptionTtlDays = 30
     hygieneBranchBackupCommits = 5
     hygienePlanDriftMinFeatureCommits = 3
+    hygieneNamingEnabled = $true
+    hygieneNamingLegacyAllowed = @(
+        "Harness Template Use Docs",
+        ".github/ISSUE_TEMPLATE"
+    )
     uiConformanceForbiddenPatterns = @(
-        @{ pattern = '#[0-9a-fA-F]{6}\b'; reason = "hardcoded_hex_color" },
+        @{ pattern = '#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b'; reason = "hardcoded_hex_color" },
         @{ pattern = '\b(?:bg-white|bg-black\b|(?:bg|text|border)-(?:emerald|red|green|blue|slate|gray|zinc|amber|rose)-\d{2,3})\b'; reason = "palette_literal" },
         @{ pattern = '@import\s+url\(\s*["'']?https?://'; reason = "cdn_font_import" },
         @{ pattern = 'from\s+["'']@tabler/'; reason = "forbidden_icon_package" }

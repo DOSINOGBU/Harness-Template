@@ -32,7 +32,7 @@
       ],
       "forbiddenPatterns": [
         {
-          "pattern": "#[0-9a-fA-F]{6}\\b",
+          "pattern": "#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\\b",
           "reason": "hardcoded_hex_color"
         },
         {
@@ -98,7 +98,12 @@
     ],
     "exceptionTtlDays": 30,
     "branchBackupCommits": 5,
-    "planDriftMinFeatureCommits": 3
+    "planDriftMinFeatureCommits": 3,
+    "namingEnabled": true,
+    "namingLegacyAllowed": [
+      "Harness Template Use Docs",
+      ".github/ISSUE_TEMPLATE"
+    ]
   },
   "versionControl": {
     "autoCommitWorkUnit": true,

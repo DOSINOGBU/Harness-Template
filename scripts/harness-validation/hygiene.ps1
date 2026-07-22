@@ -10,9 +10,10 @@ function Invoke-HygieneGit {
     param([string[]]$Arguments)
 
     # Native stderr under EAP=Stop throws in Windows PowerShell; relax around git.
+    # core.quotepath=false: quoted octal-escaped Korean paths break path filters.
     $previousEap = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
-    $output = & git -C $repoRoot @Arguments 2>$null
+    $output = & git -C $repoRoot -c core.quotepath=false @Arguments 2>$null
     $exitCode = $LASTEXITCODE
     $ErrorActionPreference = $previousEap
 
@@ -24,7 +25,9 @@ function Test-WorkingTreeHygiene {
         [bool]$Strict
     )
 
-    $statusResult = Invoke-HygieneGit -Arguments @("status", "--porcelain")
+    # --untracked-files=all: default collapses untracked directories to one line,
+    # hiding hundreds of files from the count (observed in a consuming project).
+    $statusResult = Invoke-HygieneGit -Arguments @("status", "--porcelain", "--untracked-files=all")
 
     if ($statusResult.ExitCode -ne 0) {
         Write-HarnessLog -Check "hygiene-working-tree" -Status "success" -Metadata @{ reason = "not_a_git_repo" }
@@ -259,6 +262,100 @@ function Test-PlanCoverageDrift {
     }
 }
 
+function Test-NamingConsistency {
+    param(
+        [bool]$Strict
+    )
+
+    # docs/NAMING.md machine check: no spaces in names, lowercase kebab folders,
+    # kebab-case script files. Legacy names live in hygiene.namingLegacyAllowed.
+    if (-not $script:harnessConfig.hygieneNamingEnabled) {
+        Write-HarnessLog -Check "hygiene-naming" -Status "success" -Metadata @{ enabled = $false }
+        return
+    }
+
+    $excludedDirs = @(".git", "node_modules", "vendor", "dist", "build", "coverage", ".next")
+    $legacyAllowed = @($script:harnessConfig.hygieneNamingLegacyAllowed)
+    $findingCount = 0
+    $maxFindings = 10
+
+    function Test-IsLegacyAllowedPath {
+        param([string]$RelativePath)
+
+        foreach ($legacy in $legacyAllowed) {
+            $normalizedLegacy = ([string]$legacy -replace "\\", "/").Trim("/")
+
+            if ([string]::IsNullOrWhiteSpace($normalizedLegacy)) {
+                continue
+            }
+
+            if ($RelativePath -eq $normalizedLegacy -or $RelativePath.StartsWith("$normalizedLegacy/")) {
+                return $true
+            }
+        }
+
+        return $false
+    }
+
+    $allItems = @(Get-ChildItem -LiteralPath $repoRoot -Recurse -Force -ErrorAction SilentlyContinue |
+        Where-Object {
+            $full = $_.FullName
+            -not ($excludedDirs | Where-Object { $full -match [regex]::Escape([IO.Path]::DirectorySeparatorChar + $_ + [IO.Path]::DirectorySeparatorChar) -or $full.EndsWith([IO.Path]::DirectorySeparatorChar + $_) })
+        })
+
+    foreach ($item in $allItems) {
+        if ($findingCount -ge $maxFindings) {
+            break
+        }
+
+        $relativePath = (Get-RepoRelativePath -FullPath $item.FullName)
+
+        if (Test-IsLegacyAllowedPath -RelativePath $relativePath) {
+            continue
+        }
+
+        if ($item.Name -match '\s') {
+            $findingCount += 1
+            Add-MaintenanceFinding -Check "hygiene-naming" -Metadata @{
+                path = $relativePath
+                reason = "name_contains_space"
+                rulesDoc = "docs/NAMING.md"
+                strict = $Strict
+            }
+            continue
+        }
+
+        if ($item.PSIsContainer -and $item.Name -cmatch '[A-Z]') {
+            $findingCount += 1
+            Add-MaintenanceFinding -Check "hygiene-naming" -Metadata @{
+                path = $relativePath
+                reason = "uppercase_folder_name"
+                rulesDoc = "docs/NAMING.md"
+                strict = $Strict
+            }
+            continue
+        }
+
+        if (-not $item.PSIsContainer -and $item.Extension -in @(".ps1", ".psm1", ".mjs", ".js") -and
+            $item.BaseName -cnotmatch '^[a-z0-9][a-z0-9-]*$' -and $item.Name -notlike "_*") {
+            $findingCount += 1
+            Add-MaintenanceFinding -Check "hygiene-naming" -Metadata @{
+                path = $relativePath
+                reason = "script_not_kebab_case"
+                rulesDoc = "docs/NAMING.md"
+                strict = $Strict
+            }
+        }
+    }
+
+    if ($findingCount -eq 0) {
+        Write-HarnessLog -Check "hygiene-naming" -Status "success" -Metadata @{
+            scanned = $allItems.Count
+            legacyAllowed = $legacyAllowed.Count
+        }
+    }
+}
+
 function Test-HygieneDrift {
     param(
         [bool]$Strict
@@ -269,4 +366,5 @@ function Test-HygieneDrift {
     Test-ScratchSprawl -Strict:$Strict
     Test-ExpiredExceptions -Strict:$Strict
     Test-PlanCoverageDrift -Strict:$Strict
+    Test-NamingConsistency -Strict:$Strict
 }

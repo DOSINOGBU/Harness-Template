@@ -67,7 +67,17 @@ $contracts = @(
         $glossPhrase
     ) },
     @{ Path = "AGENTS.md"; Phrases = @(
-        "REPORTING.md"
+        "REPORTING.md",
+        "NAMING.md",
+        "Delegation Policy"
+    ) },
+    @{ Path = "docs/NAMING.md"; Phrases = @(
+        "kebab-case",
+        "YYYY-MM-DD",
+        "namingLegacyAllowed"
+    ) },
+    @{ Path = "docs/WORKFLOW.md"; Phrases = @(
+        "Delegation Policy"
     ) },
     @{ Path = "docs/exec-plans/README.md"; Phrases = @(
         "drafts",
