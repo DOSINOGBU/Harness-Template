@@ -1,8 +1,11 @@
-# Stop hook with two bounded nudges, both fail-open:
-# 1) commit guard  - once per session when the turn ends with uncommitted changes
-# 2) plan resume   - up to twice per session when an active exec-plan still has
-#                    unchecked "- [ ]" items (capped port of lazycodex auto-continue)
-# Total possible blocks per session: 3. Any error exits 0 so sessions never break.
+# Stop hook with two nudges, both fail-open:
+# 1) commit guard - once per session when the turn ends with uncommitted changes
+# 2) plan resume  - progress-aware auto-continue (lazycodex port with a safety
+#    valve): keeps nudging while the number of unchecked "- [ ]" items in active
+#    exec-plans DECREASES between stops; stops after planResume.stallLimit stops
+#    without progress (default 2) or planResume.maxNudges total (default 20).
+#    Thresholds come from .harness/config.json "planResume".
+# Any error exits 0 so sessions never break.
 $ErrorActionPreference = "Stop"
 
 function Write-BlockDecision {
@@ -57,19 +60,22 @@ try {
         }
     }
 
-    # --- Nudge 2: active exec-plan with unchecked items (max 2 per session) ---
-    $resumeCountPath = Join-Path $flagDir "plan-resume-count-$sessionId.txt"
-    $resumeCount = 0
+    # --- Nudge 2: progress-aware plan resume ---
+    $maxNudges = 20
+    $stallLimit = 2
+    $configPath = Join-Path $projectDir ".harness\config.json"
 
-    if (Test-Path -LiteralPath $resumeCountPath) {
-        $parsedCount = 0
-        if ([int]::TryParse((Get-Content -LiteralPath $resumeCountPath -ErrorAction SilentlyContinue | Select-Object -First 1), [ref]$parsedCount)) {
-            $resumeCount = $parsedCount
+    if (Test-Path -LiteralPath $configPath) {
+        try {
+            $config = Get-Content -Raw -Encoding UTF8 -LiteralPath $configPath | ConvertFrom-Json
+
+            if ($config.planResume) {
+                if ([int]$config.planResume.maxNudges -ge 1) { $maxNudges = [int]$config.planResume.maxNudges }
+                if ([int]$config.planResume.stallLimit -ge 1) { $stallLimit = [int]$config.planResume.stallLimit }
+            }
         }
-    }
-
-    if ($resumeCount -ge 2) {
-        exit 0
+        catch {
+        }
     }
 
     $activePlanDir = Join-Path $projectDir "docs\exec-plans\active"
@@ -77,23 +83,73 @@ try {
         exit 0
     }
 
+    $totalUnchecked = 0
+    $firstPlanName = $null
+
     foreach ($planFile in @(Get-ChildItem -LiteralPath $activePlanDir -Filter "*.md" -File -ErrorAction SilentlyContinue)) {
         $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $planFile.FullName
         $uncheckedCount = [regex]::Matches($content, '(?m)^\s*-\s\[\s\]\s').Count
 
-        if ($uncheckedCount -eq 0) {
-            continue
+        if ($uncheckedCount -gt 0 -and $null -eq $firstPlanName) {
+            $firstPlanName = $planFile.Name
         }
 
-        Set-Content -LiteralPath $resumeCountPath -Value ([string]($resumeCount + 1)) -Encoding ASCII
+        $totalUnchecked += $uncheckedCount
+    }
 
-        Write-BlockDecision -Reason ("[harness plan-resume] Active exec-plan '" + $planFile.Name + "' still has " + $uncheckedCount +
-            " unchecked '- [ ]' items. Do not stop here: either continue working the next unchecked item now, " +
-            "or mark the plan Blocked/Partial with reasons and resume conditions per docs/exec-plans/README.md. " +
-            "(auto-resume nudge " + ($resumeCount + 1) + "/2 this session)")
+    $statePath = Join-Path $flagDir "plan-resume-state-$sessionId.txt"
+
+    if ($totalUnchecked -eq 0) {
+        if (Test-Path -LiteralPath $statePath) {
+            Remove-Item -LiteralPath $statePath -Force -ErrorAction SilentlyContinue
+        }
         exit 0
     }
 
+    $nudgeCount = 0
+    $stallCount = 0
+    $lastUnchecked = -1
+
+    if (Test-Path -LiteralPath $statePath) {
+        $stateParts = ((Get-Content -LiteralPath $statePath -ErrorAction SilentlyContinue | Select-Object -First 1) -split '\|')
+
+        if ($stateParts.Count -ge 3) {
+            [int]::TryParse($stateParts[0], [ref]$nudgeCount) | Out-Null
+            [int]::TryParse($stateParts[1], [ref]$stallCount) | Out-Null
+            [int]::TryParse($stateParts[2], [ref]$lastUnchecked) | Out-Null
+        }
+    }
+
+    if ($nudgeCount -ge $maxNudges) {
+        exit 0
+    }
+
+    $progressNote = "first nudge"
+
+    if ($lastUnchecked -ge 0) {
+        if ($totalUnchecked -lt $lastUnchecked) {
+            $stallCount = 0
+            $progressNote = "progress detected ($lastUnchecked -> $totalUnchecked items)"
+        }
+        else {
+            $stallCount += 1
+            $progressNote = "no progress since last stop ($lastUnchecked -> $totalUnchecked items, stall $stallCount/$stallLimit)"
+
+            if ($stallCount -ge $stallLimit) {
+                Set-Content -LiteralPath $statePath -Value "$nudgeCount|$stallCount|$totalUnchecked" -Encoding ASCII
+                # Stalled: stop auto-resume and let the turn end so a human can look.
+                exit 0
+            }
+        }
+    }
+
+    $nudgeCount += 1
+    Set-Content -LiteralPath $statePath -Value "$nudgeCount|$stallCount|$totalUnchecked" -Encoding ASCII
+
+    Write-BlockDecision -Reason ("[harness plan-resume] Active exec-plan '" + $firstPlanName + "' still has " + $totalUnchecked +
+        " unchecked '- [ ]' items (" + $progressNote + "). Do not stop here: continue the next unchecked item now, " +
+        "or mark the plan Blocked/Partial with reasons and resume conditions per docs/exec-plans/README.md. " +
+        "(auto-resume " + $nudgeCount + "/" + $maxNudges + "; stops after " + $stallLimit + " stops without progress)")
     exit 0
 }
 catch {
