@@ -30,6 +30,7 @@ param(
     [string]$DocsMessage,
     [string]$Justification,
     [string]$AcceptCodeHealth,
+    [string]$AcceptUiConformance,
     [switch]$SkipCodeHealthGate,
     [switch]$DryRun
 )
@@ -288,6 +289,152 @@ function Test-CommitCodeHealthGate {
         ". Split or shrink the files, or pass -AcceptCodeHealth `"<reason>`" to record an intentional exception.")
 }
 
+function Get-UiConformanceGateConfig {
+    # Defaults mirror scripts/harness-validation/ui-conformance.ps1.
+    $gateConfig = [pscustomobject]@{
+        Enabled = $true
+        TargetExtensions = @(".astro", ".css", ".jsx", ".less", ".sass", ".scss", ".svelte", ".tsx", ".vue")
+        ExcludedPatterns = @("**/globals.css", "**/tokens.css", "**/*.tokens.*")
+        ForbiddenPatterns = @(
+            @{ pattern = '#[0-9a-fA-F]{6}\b'; reason = "hardcoded_hex_color" },
+            @{ pattern = '\b(?:bg-white|bg-black\b|(?:bg|text|border)-(?:emerald|red|green|blue|slate|gray|zinc|amber|rose)-\d{2,3})\b'; reason = "palette_literal" },
+            @{ pattern = '@import\s+url\(\s*["'']?https?://'; reason = "cdn_font_import" },
+            @{ pattern = 'from\s+["'']@tabler/'; reason = "forbidden_icon_package" }
+        )
+    }
+
+    $configPath = Join-Path $repoRootPath ".harness/config.json"
+
+    if (-not (Test-Path -LiteralPath $configPath)) {
+        return $gateConfig
+    }
+
+    try {
+        $rawConfig = Get-Content -Raw -Encoding UTF8 -LiteralPath $configPath | ConvertFrom-Json
+        $uiConformance = $rawConfig.validation.uiConformance
+
+        if ($null -ne $uiConformance) {
+            if ($null -ne $uiConformance.enabled) { $gateConfig.Enabled = [bool]$uiConformance.enabled }
+            if ($uiConformance.targetExtensions) { $gateConfig.TargetExtensions = @($uiConformance.targetExtensions) }
+            if ($uiConformance.excludedPatterns) { $gateConfig.ExcludedPatterns = @($uiConformance.excludedPatterns) }
+
+            if ($uiConformance.forbiddenPatterns) {
+                $gateConfig.ForbiddenPatterns = @($uiConformance.forbiddenPatterns | ForEach-Object {
+                    @{ pattern = [string]$_.pattern; reason = [string]$_.reason }
+                })
+            }
+        }
+    }
+    catch {
+        # Keep defaults when config is unreadable.
+    }
+
+    return $gateConfig
+}
+
+function Get-UiViolationCount {
+    param(
+        [string[]]$Lines,
+        [object[]]$ForbiddenPatterns
+    )
+
+    $count = 0
+
+    foreach ($line in $Lines) {
+        foreach ($forbidden in $ForbiddenPatterns) {
+            if (-not [string]::IsNullOrWhiteSpace($forbidden.pattern) -and $line -match $forbidden.pattern) {
+                $count += 1
+            }
+        }
+    }
+
+    return $count
+}
+
+function Test-CommitUiConformanceGate {
+    param(
+        [string[]]$FeaturePaths
+    )
+
+    if ($FeaturePaths.Count -eq 0) {
+        return
+    }
+
+    $gateConfig = Get-UiConformanceGateConfig
+
+    if (-not $gateConfig.Enabled) {
+        return
+    }
+
+    $violations = @()
+
+    foreach ($path in $FeaturePaths) {
+        $extension = [IO.Path]::GetExtension($path).ToLowerInvariant()
+
+        if ($gateConfig.TargetExtensions -notcontains $extension) {
+            continue
+        }
+
+        $normalizedPath = ($path -replace "\\", "/")
+        $isExcluded = $false
+
+        foreach ($excludedPattern in $gateConfig.ExcludedPatterns) {
+            if ($normalizedPath -like (([string]$excludedPattern) -replace "\\", "/")) {
+                $isExcluded = $true
+                break
+            }
+        }
+
+        if ($isExcluded) {
+            continue
+        }
+
+        $fullPath = Join-Path $repoRootPath ($path -replace "/", [IO.Path]::DirectorySeparatorChar)
+
+        if (-not (Test-Path -LiteralPath $fullPath)) {
+            continue
+        }
+
+        $currentLines = @(Get-Content -LiteralPath $fullPath -ErrorAction SilentlyContinue)
+        $currentCount = Get-UiViolationCount -Lines $currentLines -ForbiddenPatterns $gateConfig.ForbiddenPatterns
+
+        if ($currentCount -eq 0) {
+            continue
+        }
+
+        # Only NEW violations block: editing a file with legacy violations is
+        # allowed as long as this commit does not add more of them.
+        $headLines = @()
+        try {
+            $headLines = @(Invoke-HarnessGit -RepoRoot $repoRootPath -Arguments @("show", "HEAD:$path"))
+        }
+        catch {
+            $headLines = @()
+        }
+
+        $headCount = Get-UiViolationCount -Lines $headLines -ForbiddenPatterns $gateConfig.ForbiddenPatterns
+
+        if ($currentCount -gt $headCount) {
+            $violations += "$path (UI rule violations $headCount -> $currentCount; see docs/UI_RULES.md)"
+        }
+    }
+
+    if ($violations.Count -eq 0) {
+        return
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($AcceptUiConformance)) {
+        Write-WorkUnitLog -Status "ui_conformance_accepted" -Metadata @{
+            reason = $AcceptUiConformance
+            violations = ($violations -join "; ")
+        }
+        return
+    }
+
+    throw ("UI conformance gate blocked the commit (new violations added): " + ($violations -join "; ") +
+        ". Replace literals with design tokens per docs/UI_RULES.md, or pass -AcceptUiConformance `"<reason>`" to record an intentional exception.")
+}
+
 if (-not (Test-HarnessGitRepository -RepoRoot $repoRootPath)) {
     throw "RepoRoot is not a git work tree: $repoRootPath"
 }
@@ -355,6 +502,7 @@ if ($hasFeatureChanges) {
     }
 
     Test-CommitCodeHealthGate -FeaturePaths @($summaryObject.Feature)
+    Test-CommitUiConformanceGate -FeaturePaths @($summaryObject.Feature)
 
     $planPathsTouched = @($changedPaths | Where-Object { ($_ -replace "\\", "/") -like "docs/exec-plans/*" })
 

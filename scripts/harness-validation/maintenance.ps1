@@ -177,6 +177,49 @@ function Test-ArtifactNaming {
     }
 }
 
+function Test-StaleDraftPlans {
+    param(
+        [bool]$Strict
+    )
+
+    # Drafts are pre-approval scratch: left too long they silently bypass the
+    # draft -> user approval -> active flow. Same threshold as stale active plans.
+    $draftsFolder = Resolve-RepoRelativePath -RelativePath "docs/exec-plans/drafts"
+    $thresholdDays = $script:harnessConfig.staleActivePlanDays
+    $cutoff = (Get-Date).AddDays(-1 * $thresholdDays)
+    $files = @()
+
+    if (Test-Path -LiteralPath $draftsFolder) {
+        $files = @(Get-ChildItem -LiteralPath $draftsFolder -Filter "*.md" -File)
+    }
+
+    $staleCount = 0
+
+    foreach ($file in $files) {
+        $lastChanged = Get-FileLastChangedTime -File $file
+
+        if ($lastChanged.Value -ge $cutoff) {
+            continue
+        }
+
+        $staleCount += 1
+        Add-MaintenanceFinding -Check "maintenance-stale-draft-plan" -Metadata @{
+            path = Get-RepoRelativePath -FullPath $file.FullName
+            days = [int]((Get-Date) - $lastChanged.Value).TotalDays
+            thresholdDays = $thresholdDays
+            reason = "draft_awaiting_approval_too_long"
+            strict = $Strict
+        }
+    }
+
+    if ($staleCount -eq 0) {
+        Write-HarnessLog -Check "maintenance-stale-draft-plan" -Status "success" -Metadata @{
+            count = $files.Count
+            thresholdDays = $thresholdDays
+        }
+    }
+}
+
 function Test-ExecPlanCheckboxes {
     param(
         [bool]$Strict
@@ -650,6 +693,7 @@ function Test-MaintenanceDrift {
     Test-UnregisteredDocsRootFiles -Strict:$Strict
     Test-ArtifactNaming -Strict:$Strict
     Test-StaleActivePlans -Strict:$Strict
+    Test-StaleDraftPlans -Strict:$Strict
     Test-ExecPlanFormat -Strict:$Strict
     Test-ExecPlanCheckboxes -Strict:$Strict
     Test-GeneratedTodoTimestamps -Strict:$Strict
