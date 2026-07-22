@@ -6,6 +6,10 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $failureCount = 0
 $checkCount = 0
 
+# Korean phrases must be built from code points: PS 5.1 reads BOM-less scripts
+# as ANSI and garbles literal Hangul (observed failure: this very check).
+$glossPhrase = [string]([char]0xAD04) + [char]0xD638
+
 function Write-ContractLog {
     param(
         [string]$Status,
@@ -60,7 +64,7 @@ $contracts = @(
         "sendPrompt",
         "EVIDENCE_RECORDED",
         "reporting.json",
-        "괄호"
+        $glossPhrase
     ) },
     @{ Path = "AGENTS.md"; Phrases = @(
         "REPORTING.md"
