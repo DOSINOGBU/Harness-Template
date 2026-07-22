@@ -1,0 +1,12 @@
+---
+description: UI rules gate — read docs/UI_RULES.md before editing UI/style files.
+globs: **/*.tsx,**/*.jsx,**/*.vue,**/*.svelte,**/*.astro,**/*.css,**/*.scss,**/*.sass,**/*.less
+alwaysApply: false
+---
+
+# UI rules gate
+
+- Before creating or editing any UI/style file, read `docs/UI_RULES.md` and follow §1 (강제 규칙): design tokens only (no hardcoded hex, no `bg-white`/palette literals), no arbitrary px values, no reimplementing shared components, single icon library and font.
+- Do **not** restyle screens or components outside the requested scope. Look changes require explicit user confirmation.
+- Any style decision not covered by `docs/UI_RULES.md` must be added to that document (with user confirmation) before implementing it.
+- Before reporting completion on UI work, check every row of the §5 checklist and confirm §6 wiring (component exists ≠ component is imported/mounted/used).

@@ -1,0 +1,11 @@
+---
+description: Startup context — avoid redundant UTF-8 or PowerShell disclaimers; follow AGENTS.md and bootstrap output.
+alwaysApply: true
+---
+
+# Agent startup (Harness Template)
+
+- Follow `AGENTS.md` Working Mode and Required Reading. Do **not** open every session with long disclaimers about UTF-8, “reading docs again because PowerShell might garble output”, or similar—the repo already states how to handle terminals in `AGENTS.md` and `docs/ONBOARDING.md`.
+- Repository markdown is UTF-8; file tools read it as text normally.
+- When you run `scripts/bootstrap-agent-context.ps1`, the first line is an ASCII marker `[AgentContext] io encoding { console_output=utf8 }` meaning the script requested UTF-8 console output. If Korean lines still look wrong in the terminal, prefer `pwsh` on Windows or adjust the terminal host; do not treat that as a reason to narrate encoding at length.
+- Align Debug vs Build with `docs/WORKFLOW.md`; checklists live under `.harness/checklists/` per `.harness/README.md`.
