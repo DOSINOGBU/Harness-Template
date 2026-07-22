@@ -18,7 +18,7 @@ AI 에이전트가 작업을 받았을 때 어떤 순서로 컨텍스트를 모�
 | 9. Product Verify | 대표 샘플로 실제 사용 품질을 확인합니다. | 품질 검증 로그 |
 | 10. Self-Verify | `.harness/checklists/pre-completion.md`로 요구사항과 검증을 다시 확인합니다. | 완료 전 점검 |
 | 11. Version Control | 검증 상태에 맞춰 커밋 분리와 push 가능 여부를 판단합니다. | 커밋/push 추천 또는 실행 결과 |
-| 12. Report | 변경 요약, 검증 결과, 남은 리스크를 `AGENTS.md`의 Completion Standard 순서로 보고합니다. 시각화 위젯 도구가 있으면 핵심 요약을 **비쥬얼라이즈 위젯으로 함께** 보고합니다. | 완료 보고 |
+| 12. Report | 변경 요약, 검증 결과, 남은 리스크를 `AGENTS.md`의 Completion Standard 순서로 보고합니다. 시각화 위젯 도구가 있으면 핵심 요약과 `리스크와 다음 판단`·`추천 작업`을 **비쥬얼라이즈 위젯으로 함께** 보고합니다. | 완료 보고 |
 
 ## Pipeline Verify와 Product Verify (8~9)
 
