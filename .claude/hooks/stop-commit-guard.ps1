@@ -36,21 +36,58 @@ try {
         New-Item -ItemType Directory -Path $flagDir -Force | Out-Null
     }
 
-    # --- Nudge 1: uncommitted changes (once per session) ---
-    $commitFlagPath = Join-Path $flagDir "stop-commit-nudge-$sessionId.flag"
+    # --- Nudge 1: uncommitted changes ---
+    # Normal backlog: once per session. Backlog at or over hygiene.maxUncommittedFiles
+    # (default 20): escalated - up to 3 nudges per session. Lesson from a project
+    # where 253 uncommitted files sat for 16 days past a single polite reminder.
+    $backlogThreshold = 20
+    $configPath = Join-Path $projectDir ".harness\config.json"
 
-    if (-not (Test-Path -LiteralPath $commitFlagPath)) {
-        # Native stderr under EAP=Stop throws in Windows PowerShell; relax around git.
-        $previousEap = $ErrorActionPreference
-        $ErrorActionPreference = "Continue"
-        $gitStatus = & git -C $projectDir status --porcelain 2>$null
-        $gitExitCode = $LASTEXITCODE
-        $ErrorActionPreference = $previousEap
+    if (Test-Path -LiteralPath $configPath) {
+        try {
+            $earlyConfig = Get-Content -Raw -Encoding UTF8 -LiteralPath $configPath | ConvertFrom-Json
+            if ([int]$earlyConfig.hygiene.maxUncommittedFiles -ge 1) {
+                $backlogThreshold = [int]$earlyConfig.hygiene.maxUncommittedFiles
+            }
+        }
+        catch {
+        }
+    }
 
-        if ($gitExitCode -eq 0 -and -not [string]::IsNullOrWhiteSpace(($gitStatus -join ""))) {
+    # Native stderr under EAP=Stop throws in Windows PowerShell; relax around git.
+    $previousEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $gitStatus = & git -C $projectDir status --porcelain 2>$null
+    $gitExitCode = $LASTEXITCODE
+    $ErrorActionPreference = $previousEap
+
+    if ($gitExitCode -eq 0) {
+        $dirtyLines = @($gitStatus | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $commitFlagPath = Join-Path $flagDir "stop-commit-nudge-$sessionId.flag"
+
+        if ($dirtyLines.Count -ge $backlogThreshold) {
+            $escalationPath = Join-Path $flagDir "stop-commit-escalation-$sessionId.txt"
+            $escalationCount = 0
+
+            if (Test-Path -LiteralPath $escalationPath) {
+                [int]::TryParse((Get-Content -LiteralPath $escalationPath -ErrorAction SilentlyContinue | Select-Object -First 1), [ref]$escalationCount) | Out-Null
+            }
+
+            if ($escalationCount -lt 3) {
+                Set-Content -LiteralPath $escalationPath -Value ([string]($escalationCount + 1)) -Encoding ASCII
+
+                # ASCII only: Windows PowerShell 5.1 reads BOM-less scripts as ANSI.
+                Write-BlockDecision -Reason ("[harness stop-commit-guard] BACKLOG ALERT: " + $dirtyLines.Count +
+                    " uncommitted files (threshold $backlogThreshold). This is how work gets lost - stop accumulating. " +
+                    "Classify the changes now: commit completed work units via scripts/commit-work-unit.ps1, " +
+                    "gitignore generated outputs, and report anything intentionally held. " +
+                    "(escalated nudge " + ($escalationCount + 1) + "/3 this session)")
+                exit 0
+            }
+        }
+        elseif ($dirtyLines.Count -gt 0 -and -not (Test-Path -LiteralPath $commitFlagPath)) {
             New-Item -ItemType File -Path $commitFlagPath -Force | Out-Null
 
-            # ASCII only: Windows PowerShell 5.1 reads BOM-less scripts as ANSI.
             Write-BlockDecision -Reason ("[harness stop-commit-guard] Uncommitted changes remain in the working tree. " +
                 "Per AGENTS.md Hard Constraints, run scripts/recommend-version-control.ps1 -VerificationStatus <Passed|Partial|Failed> " +
                 "and, if recommended, commit via scripts/commit-work-unit.ps1 before ending the turn. " +

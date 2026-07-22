@@ -15,6 +15,9 @@
     "planResume": {
       "$ref": "#/definitions/planResume"
     },
+    "hygiene": {
+      "$ref": "#/definitions/hygiene"
+    },
     "versionControl": {
       "$ref": "#/definitions/versionControl"
     }
@@ -70,6 +73,20 @@
       "properties": {
         "maxNudges": { "$ref": "#/definitions/positiveInteger" },
         "stallLimit": { "$ref": "#/definitions/positiveInteger" }
+      }
+    },
+    "hygiene": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Anti-drift thresholds: uncommitted/untracked backlog, scratch sprawl, exception expiry, branch backup, plan coverage drift.",
+      "properties": {
+        "maxUncommittedFiles": { "$ref": "#/definitions/positiveInteger" },
+        "maxUntrackedFiles": { "$ref": "#/definitions/positiveInteger" },
+        "scratchThreshold": { "$ref": "#/definitions/positiveInteger" },
+        "scratchPatterns": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "exceptionTtlDays": { "$ref": "#/definitions/positiveInteger" },
+        "branchBackupCommits": { "$ref": "#/definitions/positiveInteger" },
+        "planDriftMinFeatureCommits": { "$ref": "#/definitions/positiveInteger" }
       }
     },
     "uiConformance": {

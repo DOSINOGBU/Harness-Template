@@ -84,6 +84,22 @@
     "maxNudges": 20,
     "stallLimit": 2
   },
+  "hygiene": {
+    "maxUncommittedFiles": 20,
+    "maxUntrackedFiles": 30,
+    "scratchThreshold": 10,
+    "scratchPatterns": [
+      "_tmp_*",
+      "tmp_*",
+      "*.tmp",
+      "scratch-*",
+      "_validate_*",
+      "_verify_*"
+    ],
+    "exceptionTtlDays": 30,
+    "branchBackupCommits": 5,
+    "planDriftMinFeatureCommits": 3
+  },
   "versionControl": {
     "autoCommitWorkUnit": true,
     "autoPushAfterFeatureCommits": 2,
