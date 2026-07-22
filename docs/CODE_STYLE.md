@@ -63,3 +63,12 @@
 - lockfile
 - vendored file
 - 빌드 산출물, coverage, dist, node_modules
+
+## CodeHealth Warning Triage
+
+CodeHealth warning은 즉시 수정 지시가 아니라 책임 경계가 흐려졌는지 확인하는 신호로 사용합니다. warning을 없애기 위해 의미 없는 파일 쪼개기나 helper 추출을 하지 않습니다.
+
+- `code-health-large-file` warning은 먼저 파일이 여러 책임을 섞고 있는지 확인합니다.
+- 분리가 필요하면 다음 단위를 우선 후보로 검토합니다: dispatch, source helpers, request builder, parser, validator.
+- 분리 후 공개 인터페이스가 늘어나면 호출 흐름과 에러 맥락이 더 읽기 쉬워지는지 함께 확인합니다.
+- 테스트 fixture, table-driven case, 반복 setup처럼 의도적 반복이 읽기 쉬움과 실패 위치를 보존하면 warning을 수용할 수 있습니다.

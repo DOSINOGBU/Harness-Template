@@ -31,6 +31,35 @@
 - 타임아웃은 사용자 체감 한계보다 짧게 잡습니다.
 - 한 요청 안에서 여러 외부 호출이 직렬로 일어나면 누적 시간을 기준으로 잡습니다.
 
+## Long API / Pipeline Jobs
+
+긴 API 작업이나 자동 파이프라인은 한 번에 끝난다는 전제로 설계하지 않습니다.
+
+- checkpoint: 중간 산출물, 성공한 후보, 실패한 후보를 어디에 저장할지 정합니다.
+- resume: 재시작 명령, 이미 처리한 항목을 건너뛰는 기준, 중복 실행 영향을 정합니다.
+- time budget: 호출당 timeout과 전체 실행 budget을 분리해서 정합니다.
+- candidate limit: 한 번에 처리할 최대 후보 수를 정하고 무제한 실행을 피합니다.
+- acceptance mode: `all candidates completed`인지 `minimum valid candidates secured`인지 계획과 완료 보고에 명시합니다.
+
+`minimum valid candidates secured`로 완료할 때는 필요한 valid 후보 수, 확보한 valid 후보 수, 남은 후보 수, 후속 처리 계획을 함께 남깁니다.
+
+## Timeout Analysis
+
+타임아웃이 발생하면 아래 항목으로 원인을 분석합니다.
+
+```text
+Timeout Analysis:
+- calls attempted:
+- succeeded / failed / timed out:
+- per-call timeout:
+- total time budget:
+- elapsed time:
+- checkpoint written:
+- resumable from:
+- acceptance mode affected:
+- next action:
+```
+
 ## Idempotency
 
 - 같은 작업을 두 번 실행해도 결과가 같도록 설계합니다.

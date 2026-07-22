@@ -1,0 +1,46 @@
+name: Harness Validation
+
+# No pull_request paths filter on purpose: in a consuming project the CodeHealth /
+# UI conformance gates must run on product-code PRs (src/**, app/** ...) too.
+# A harness-only filter here silently exempted all product code from the gate.
+on:
+  pull_request:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-harness:
+    name: Validate harness structure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate template harness
+        shell: pwsh
+        run: pwsh -File scripts/validate-harness.ps1 -Mode Template
+
+      - name: Validate project code health
+        shell: pwsh
+        run: pwsh -File scripts/validate-harness.ps1 -CodeHealth -Mode Project
+
+      - name: Validate maintenance drift
+        shell: pwsh
+        run: pwsh -File scripts/validate-harness.ps1 -Maintenance
+
+      - name: Run validator fixture tests
+        shell: pwsh
+        run: pwsh -File scripts/tests/run-validator-fixtures.ps1
+
+      - name: Run version control fixture tests
+        shell: pwsh
+        run: pwsh -File scripts/tests/run-version-control-fixtures.ps1
+
+      - name: Run prompt contract tests
+        shell: pwsh
+        run: pwsh -File scripts/tests/run-prompt-contract-tests.ps1

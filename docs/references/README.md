@@ -12,3 +12,9 @@
 - Summary:
 - Project Impact:
 ```
+
+## Current Notes
+
+| 문서 | 목적 |
+|---|---|
+| `model-harness-notes.md` | 모델별 하네스 운영 차이와 반복 개선 기록 |

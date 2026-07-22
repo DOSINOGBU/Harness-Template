@@ -1,0 +1,157 @@
+{
+  "$schema": "./config.schema.json",
+  "validation": {
+    "maintenanceFindingThreshold": 5,
+    "staleActivePlanDays": 14,
+    "placeholderTodoThreshold": 3,
+    "placeholderPatterns": [
+      "TODO",
+      "FIXME",
+      "TBD",
+      "XXX",
+      "???"
+    ],
+    "requireExecPlanUsage": true,
+    "uiConformance": {
+      "enabled": true,
+      "targetExtensions": [
+        ".astro",
+        ".css",
+        ".jsx",
+        ".less",
+        ".sass",
+        ".scss",
+        ".svelte",
+        ".tsx",
+        ".vue"
+      ],
+      "excludedPatterns": [
+        "**/globals.css",
+        "**/tokens.css",
+        "**/*.tokens.*"
+      ],
+      "forbiddenPatterns": [
+        {
+          "pattern": "#[0-9a-fA-F]{6}\\b",
+          "reason": "hardcoded_hex_color"
+        },
+        {
+          "pattern": "\\b(?:bg-white|bg-black\\b|(?:bg|text|border)-(?:emerald|red|green|blue|slate|gray|zinc|amber|rose)-\\d{2,3})\\b",
+          "reason": "palette_literal"
+        },
+        {
+          "pattern": "@import\\s+url\\(\\s*[\"']?https?://",
+          "reason": "cdn_font_import"
+        },
+        {
+          "pattern": "from\\s+[\"']@tabler/",
+          "reason": "forbidden_icon_package"
+        }
+      ]
+    },
+    "codeHealth": {
+      "warningLines": 500,
+      "featureFreezeLines": 800,
+      "failureLines": 1200,
+      "markupWarningLines": 800,
+      "markupFeatureFreezeLines": 1200,
+      "markupFailureLines": 1800,
+      "migrationWarningLines": 1200,
+      "migrationFeatureFreezeLines": 1800,
+      "migrationFailureLines": 2400,
+      "longFunctionLines": 120,
+      "repeatedLineThreshold": 6,
+      "excludedPaths": [
+        ".git",
+        "docs",
+        ".harness",
+        "vendor",
+        "dist",
+        "build",
+        "coverage",
+        "node_modules"
+      ],
+      "excludedPatterns": [
+        "**/generated/**",
+        "**/vendor/**",
+        "**/*.lock",
+        "**/*.generated.*",
+        "**/migrations/**"
+      ]
+    }
+  },
+  "planResume": {
+    "maxNudges": 20,
+    "stallLimit": 2
+  },
+  "versionControl": {
+    "autoCommitWorkUnit": true,
+    "autoPushAfterFeatureCommits": 2,
+    "autoPushBranches": [
+      "codex/*",
+      "feature/*",
+      "fix/*"
+    ],
+    "protectedBranches": [
+      "main",
+      "master"
+    ],
+    "featureCommitTypes": [
+      "feat",
+      "fix",
+      "refactor",
+      "test",
+      "perf"
+    ],
+    "blockedPathPatterns": [
+      ".env",
+      ".env.*",
+      "**/.env",
+      "**/.env.*",
+      "**/*.pem",
+      "**/*.key",
+      "**/*.pfx",
+      "**/*.p12",
+      ".lecturedigest/**",
+      "data/raw/**",
+      "datasets/raw/**"
+    ],
+    "largeFileBytes": 10485760,
+    "largeOriginalDataPatterns": [
+      "data/raw/**",
+      "datasets/raw/**",
+      "**/raw/**",
+      "**/*.zip",
+      "**/*.tar",
+      "**/*.tgz",
+      "**/*.7z"
+    ],
+    "workUnitPaths": {
+      "code": [
+        "src/**",
+        "app/**",
+        "lib/**",
+        "components/**",
+        "pages/**",
+        "server/**",
+        "client/**",
+        "api/**",
+        "scripts/**"
+      ],
+      "tests": [
+        "tests/**",
+        "test/**",
+        "__tests__/**",
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/*.Tests.*"
+      ],
+      "execPlansCompleted": [
+        "docs/exec-plans/completed/**"
+      ],
+      "validation": [
+        "docs/validation/**"
+      ]
+    }
+  }
+}

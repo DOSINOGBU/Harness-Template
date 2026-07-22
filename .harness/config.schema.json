@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Harness configuration",
+  "description": "Thresholds and path patterns for scripts/validate-harness.ps1 and scripts/harness-version-control/.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URI of this schema (enables editor validation)."
+    },
+    "validation": {
+      "$ref": "#/definitions/validation"
+    },
+    "planResume": {
+      "$ref": "#/definitions/planResume"
+    },
+    "versionControl": {
+      "$ref": "#/definitions/versionControl"
+    }
+  },
+  "required": ["validation", "versionControl"],
+  "definitions": {
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "nonEmptyStringArray": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "codeHealth": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "warningLines": { "$ref": "#/definitions/positiveInteger" },
+        "featureFreezeLines": { "$ref": "#/definitions/positiveInteger" },
+        "failureLines": { "$ref": "#/definitions/positiveInteger" },
+        "markupWarningLines": { "$ref": "#/definitions/positiveInteger" },
+        "markupFeatureFreezeLines": { "$ref": "#/definitions/positiveInteger" },
+        "markupFailureLines": { "$ref": "#/definitions/positiveInteger" },
+        "migrationWarningLines": { "$ref": "#/definitions/positiveInteger" },
+        "migrationFeatureFreezeLines": { "$ref": "#/definitions/positiveInteger" },
+        "migrationFailureLines": { "$ref": "#/definitions/positiveInteger" },
+        "longFunctionLines": { "$ref": "#/definitions/positiveInteger" },
+        "repeatedLineThreshold": { "$ref": "#/definitions/positiveInteger" },
+        "excludedPaths": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "excludedPatterns": { "$ref": "#/definitions/nonEmptyStringArray" }
+      },
+      "required": [
+        "warningLines",
+        "featureFreezeLines",
+        "failureLines",
+        "markupWarningLines",
+        "markupFeatureFreezeLines",
+        "markupFailureLines",
+        "migrationWarningLines",
+        "migrationFeatureFreezeLines",
+        "migrationFailureLines",
+        "longFunctionLines",
+        "repeatedLineThreshold",
+        "excludedPaths",
+        "excludedPatterns"
+      ]
+    },
+    "planResume": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Stop-hook auto-resume for active exec-plans: keep nudging while unchecked items decrease; stop after stallLimit stops without progress or maxNudges total.",
+      "properties": {
+        "maxNudges": { "$ref": "#/definitions/positiveInteger" },
+        "stallLimit": { "$ref": "#/definitions/positiveInteger" }
+      }
+    },
+    "uiConformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "targetExtensions": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "excludedPatterns": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "forbiddenPatterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "pattern": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 1 }
+            },
+            "required": ["pattern", "reason"]
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maintenanceFindingThreshold": { "$ref": "#/definitions/positiveInteger" },
+        "staleActivePlanDays": { "$ref": "#/definitions/positiveInteger" },
+        "placeholderTodoThreshold": { "$ref": "#/definitions/positiveInteger" },
+        "placeholderPatterns": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "requireExecPlanUsage": { "type": "boolean" },
+        "uiConformance": { "$ref": "#/definitions/uiConformance" },
+        "codeHealth": { "$ref": "#/definitions/codeHealth" }
+      },
+      "required": [
+        "maintenanceFindingThreshold",
+        "staleActivePlanDays",
+        "placeholderTodoThreshold",
+        "placeholderPatterns",
+        "requireExecPlanUsage",
+        "codeHealth"
+      ]
+    },
+    "workUnitPaths": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "tests": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "execPlansCompleted": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "validation": { "$ref": "#/definitions/nonEmptyStringArray" }
+      },
+      "required": ["code", "tests", "execPlansCompleted", "validation"]
+    },
+    "versionControl": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "autoCommitWorkUnit": { "type": "boolean" },
+        "autoPushAfterFeatureCommits": { "$ref": "#/definitions/positiveInteger" },
+        "autoPushBranches": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "protectedBranches": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "featureCommitTypes": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "blockedPathPatterns": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "largeFileBytes": { "$ref": "#/definitions/positiveInteger" },
+        "largeOriginalDataPatterns": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "workUnitPaths": { "$ref": "#/definitions/workUnitPaths" }
+      },
+      "required": [
+        "autoCommitWorkUnit",
+        "autoPushAfterFeatureCommits",
+        "autoPushBranches",
+        "protectedBranches",
+        "featureCommitTypes",
+        "blockedPathPatterns",
+        "largeFileBytes",
+        "largeOriginalDataPatterns",
+        "workUnitPaths"
+      ]
+    }
+  }
+}
