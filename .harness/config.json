@@ -80,6 +80,10 @@
       ]
     }
   },
+  "planResume": {
+    "maxNudges": 20,
+    "stallLimit": 2
+  },
   "versionControl": {
     "autoCommitWorkUnit": true,
     "autoPushAfterFeatureCommits": 2,

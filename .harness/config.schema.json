@@ -12,6 +12,9 @@
     "validation": {
       "$ref": "#/definitions/validation"
     },
+    "planResume": {
+      "$ref": "#/definitions/planResume"
+    },
     "versionControl": {
       "$ref": "#/definitions/versionControl"
     }
@@ -59,6 +62,15 @@
         "excludedPaths",
         "excludedPatterns"
       ]
+    },
+    "planResume": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Stop-hook auto-resume for active exec-plans: keep nudging while unchecked items decrease; stop after stallLimit stops without progress or maxNudges total.",
+      "properties": {
+        "maxNudges": { "$ref": "#/definitions/positiveInteger" },
+        "stallLimit": { "$ref": "#/definitions/positiveInteger" }
+      }
     },
     "uiConformance": {
       "type": "object",

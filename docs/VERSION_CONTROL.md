@@ -126,6 +126,7 @@ chore(repo): update gitignore
 - `-DryRun`을 주면 `git add`/`git commit`을 하지 않고, 만들 커밋 수와 경로만 로그합니다.
 - **원자성 하한**: 기능/테스트 파일이 3개 이상인데 한 커밋으로 만들려면 `-Justification "<한 문장 사유>"`가 필요합니다. 없으면 중단되고 ceil(파일 수/3)개로의 분리를 안내합니다.
 - **커밋 시점 코드 헬스 게이트**: 스테이징된 코드 파일이 failure 티어(기본 1200줄) 이상이거나, feature-freeze 티어(기본 800줄) 이상인 파일의 라인 수가 **늘어나면** 커밋이 중단됩니다. 의도적 예외는 `-AcceptCodeHealth "<사유>"`로 기록하고 통과시킵니다(`-SkipCodeHealthGate`는 게이트 전체 생략).
+- **UI 위반 커밋 차단**: 스테이징된 UI 파일에서 `validation.uiConformance` 금지 패턴 위반 수가 직전 커밋보다 **늘어나면** 커밋이 중단됩니다(기존 위반 파일의 무해한 수정은 통과). 의도적 예외는 `-AcceptUiConformance "<사유>"`로 기록합니다.
 - **메시지 스타일 감지**: 최근 30개 커밋에서 지배 스타일(SEMANTIC/PLAIN)을 감지해 로그로 알려주고, SEMANTIC 저장소에서 형식이 어긋난 메시지면 경고합니다.
 - **소급 plan 안내**: 코드가 바뀌었는데 `docs/exec-plans/` 변경이 전혀 없으면, 동작이 바뀐 경우 사후 plan을 남기라는 안내를 로그로 출력합니다.
 - 다음이면 스크립트가 중단됩니다: 차단 경로 포함, 표준 작업 단위에 속하지 않는 변경(`Other`)이 섞임, 기능·work unit 문서와 **그 밖의** 문서 변경이 동시에 있음, `VerificationStatus=Failed`, 기능/테스트 변경인데 검증이 `Passed`가 아님, `VerificationStatus=Partial`인데 exec-plan/validation이 아닌 문서(`DocsOther`)만 변경됨, 작업 단위 커밋 후에도 스테이징된 변경이 남음(`-DryRun`이 아닐 때).
