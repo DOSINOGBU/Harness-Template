@@ -68,7 +68,16 @@ $contracts = @(
         "19px/500",
         "minmax(180px,1fr)",
         "15px/500",
-        "12px muted"
+        "12px muted",
+        "N/A(answer)"
+    ) },
+    @{ Path = "docs/MODULES.md"; Phrases = @(
+        "incubator/",
+        "promote-module.ps1",
+        "module.json"
+    ) },
+    @{ Path = "AGENTS.md"; Phrases = @(
+        "MODULES.md"
     ) },
     @{ Path = "AGENTS.md"; Phrases = @(
         "REPORTING.md",

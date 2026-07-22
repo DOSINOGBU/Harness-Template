@@ -28,7 +28,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("analysis", "validation", "run-log", "exec-plan")]
+    [ValidateSet("analysis", "validation", "run-log", "exec-plan", "incubator")]
     [string]$Type,
 
     [Parameter(Mandatory = $true)]
@@ -87,6 +87,47 @@ if ($Type -eq "exec-plan") {
         Write-Host "[NewArtifact] note { next=fill the draft, get user approval, then move it to docs/exec-plans/active/ }"
     }
 
+    exit 0
+}
+
+if ($Type -eq "incubator") {
+    # Isolated small-project skeleton (docs/MODULES.md): grows in incubator/<slug>,
+    # promoted to the module warehouse via scripts/promote-module.ps1.
+    if ($Slug -notmatch $slugPattern) {
+        Write-Error "Incubator slug must be kebab-case: '$Slug'"
+        exit 1
+    }
+
+    $incubatorDir = Join-Path $repoRoot ("incubator" + [IO.Path]::DirectorySeparatorChar + $Slug)
+
+    if (Test-Path -LiteralPath $incubatorDir) {
+        Write-Error "Incubator project already exists: incubator/$Slug"
+        exit 1
+    }
+
+    New-Item -ItemType Directory -Path (Join-Path $incubatorDir "src") -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $incubatorDir "tests") -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $incubatorDir "deploy") -Force | Out-Null
+    New-Item -ItemType File -Path (Join-Path $incubatorDir "src\.gitkeep") -Force | Out-Null
+    New-Item -ItemType File -Path (Join-Path $incubatorDir "tests\.gitkeep") -Force | Out-Null
+    New-Item -ItemType File -Path (Join-Path $incubatorDir "deploy\.gitkeep") -Force | Out-Null
+
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
+
+    $readme = "# $Slug (incubator)`n`n" +
+        "## Purpose`n`n<!-- what this small project does, in one paragraph -->`n`n" +
+        "## Done criteria`n`n<!-- measurable conditions for promotion -->`n`n" +
+        "## Public API draft`n`n<!-- what the main project will import after promotion -->`n`n" +
+        "## Isolation`n`n" +
+        "- Do NOT reference main source roots from here. Promote shared code first.`n" +
+        "- Main code must NOT reference incubator/ paths.`n"
+    [System.IO.File]::WriteAllText((Join-Path $incubatorDir "README.md"), $readme, $utf8)
+
+    $moduleJson = "{`n  `"name`": `"$Slug`",`n  `"purpose`": `"`",`n  `"entry`": `"src/index`",`n  `"api`": []`n}`n"
+    [System.IO.File]::WriteAllText((Join-Path $incubatorDir "module.json"), $moduleJson, $utf8)
+
+    Write-Host "[NewArtifact] created { path=incubator/$Slug; type=incubator }"
+    Write-Host "[NewArtifact] note { next=create an exec-plan (-Type exec-plan), fill module.json purpose/entry, develop inside the folder only }"
     exit 0
 }
 

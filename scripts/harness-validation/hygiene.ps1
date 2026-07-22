@@ -356,6 +356,124 @@ function Test-NamingConsistency {
     }
 }
 
+function Test-IncubatorIsolation {
+    param(
+        [bool]$Strict
+    )
+
+    # docs/MODULES.md isolation: main code must not reference incubator/, and
+    # incubator code must not reach back into main source roots.
+    $incubatorRoot = Resolve-RepoRelativePath -RelativePath "incubator"
+
+    if (-not (Test-Path -LiteralPath $incubatorRoot)) {
+        Write-HarnessLog -Check "hygiene-incubator" -Status "success" -Metadata @{ reason = "no_incubator" }
+        return
+    }
+
+    $codeExtensions = @(".ps1", ".psm1", ".mjs", ".js", ".ts", ".tsx", ".py", ".go", ".rs", ".cs", ".sh")
+    $excludedPrefixes = @(".git/", "node_modules/", "docs/", ".harness/", ".claude/", ".cursor/", "vendor/", "dist/", "build/")
+    $findingCount = 0
+    $maxFindings = 5
+
+    $allCodeFiles = @(Get-ChildItem -LiteralPath $repoRoot -Recurse -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Extension -in $codeExtensions })
+
+    # Direction 1: main code referencing incubator/.
+    foreach ($file in $allCodeFiles) {
+        if ($findingCount -ge $maxFindings) { break }
+
+        $relativePath = (Get-RepoRelativePath -FullPath $file.FullName) -replace "\\", "/"
+
+        if ($relativePath.StartsWith("incubator/")) { continue }
+        if (($excludedPrefixes | Where-Object { $relativePath.StartsWith($_) }).Count -gt 0) { continue }
+        if ($relativePath -eq "scripts/promote-module.ps1" -or $relativePath -eq "scripts/new-artifact.ps1" -or
+            $relativePath.StartsWith("scripts/harness-validation/") -or $relativePath.StartsWith("scripts/tests/")) { continue }
+
+        $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $file.FullName -ErrorAction SilentlyContinue
+
+        if ($content -and $content -match 'incubator/') {
+            $findingCount += 1
+            Add-MaintenanceFinding -Check "hygiene-incubator" -Metadata @{
+                path = $relativePath
+                reason = "main_code_references_incubator"
+                hint = "promote the module first (scripts/promote-module.ps1), then import the public entry"
+                strict = $Strict
+            }
+        }
+    }
+
+    # Direction 2: incubator code reaching main source roots.
+    $rootAlternation = (@($script:harnessConfig.modulesMainSourceRoots) | ForEach-Object { [regex]::Escape($_) }) -join "|"
+    $reachPattern = "(\.\./)+($rootAlternation)/"
+
+    foreach ($file in $allCodeFiles) {
+        if ($findingCount -ge $maxFindings) { break }
+
+        $relativePath = (Get-RepoRelativePath -FullPath $file.FullName) -replace "\\", "/"
+
+        if (-not $relativePath.StartsWith("incubator/")) { continue }
+
+        $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $file.FullName -ErrorAction SilentlyContinue
+
+        if ($content -and $content -match $reachPattern) {
+            $findingCount += 1
+            Add-MaintenanceFinding -Check "hygiene-incubator" -Metadata @{
+                path = $relativePath
+                reason = "incubator_references_main_source"
+                hint = "shared code must be promoted to a module before use (docs/MODULES.md)"
+                strict = $Strict
+            }
+        }
+    }
+
+    if ($findingCount -eq 0) {
+        Write-HarnessLog -Check "hygiene-incubator" -Status "success" -Metadata @{
+            scanned = $allCodeFiles.Count
+        }
+    }
+}
+
+function Test-StaleIncubator {
+    param(
+        [bool]$Strict
+    )
+
+    $incubatorRoot = Resolve-RepoRelativePath -RelativePath "incubator"
+
+    if (-not (Test-Path -LiteralPath $incubatorRoot)) {
+        Write-HarnessLog -Check "hygiene-incubator-stale" -Status "success" -Metadata @{ reason = "no_incubator" }
+        return
+    }
+
+    $thresholdDays = $script:harnessConfig.modulesIncubatorStaleDays
+    $cutoff = (Get-Date).AddDays(-1 * $thresholdDays)
+    $staleCount = 0
+
+    foreach ($project in @(Get-ChildItem -LiteralPath $incubatorRoot -Directory -ErrorAction SilentlyContinue)) {
+        $newest = @(Get-ChildItem -LiteralPath $project.FullName -Recurse -File -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending | Select-Object -First 1)
+
+        if ($newest.Count -eq 0 -or $newest[0].LastWriteTime -ge $cutoff) {
+            continue
+        }
+
+        $staleCount += 1
+        Add-MaintenanceFinding -Check "hygiene-incubator-stale" -Metadata @{
+            path = "incubator/$($project.Name)"
+            idleDays = [int]((Get-Date) - $newest[0].LastWriteTime).TotalDays
+            thresholdDays = $thresholdDays
+            hint = "finish and promote it, or tear it down - the incubator must not become a graveyard"
+            strict = $Strict
+        }
+    }
+
+    if ($staleCount -eq 0) {
+        Write-HarnessLog -Check "hygiene-incubator-stale" -Status "success" -Metadata @{
+            thresholdDays = $thresholdDays
+        }
+    }
+}
+
 function Test-HygieneDrift {
     param(
         [bool]$Strict
@@ -367,4 +485,6 @@ function Test-HygieneDrift {
     Test-ExpiredExceptions -Strict:$Strict
     Test-PlanCoverageDrift -Strict:$Strict
     Test-NamingConsistency -Strict:$Strict
+    Test-IncubatorIsolation -Strict:$Strict
+    Test-StaleIncubator -Strict:$Strict
 }

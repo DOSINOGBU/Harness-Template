@@ -146,6 +146,8 @@ $script:harnessConfig = @{
     hygieneExceptionTtlDays = 30
     hygieneBranchBackupCommits = 5
     hygienePlanDriftMinFeatureCommits = 3
+    modulesMainSourceRoots = @("src", "app", "lib", "components", "server", "api")
+    modulesIncubatorStaleDays = 21
     hygieneNamingEnabled = $true
     hygieneNamingLegacyAllowed = @(
         "Harness Template Use Docs",
