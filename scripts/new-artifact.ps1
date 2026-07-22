@@ -163,7 +163,7 @@ $templates = @{
     "validation" = @"
 # Validation: $titleSlug
 
-Tree hash: ``TREE_HASH_PLACEHOLDER``
+Base commit: ``TREE_HASH_PLACEHOLDER``
 
 ## Scope
 
@@ -203,15 +203,13 @@ $content = $templates[$Type].Replace("`r`n", "`n")
 if ($content.Contains("TREE_HASH_PLACEHOLDER")) {
     $treeHash = "unavailable"
 
-    try {
-        $resolved = & git -C $repoRoot rev-parse --short "HEAD^{tree}" 2>$null
-        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($resolved)) {
-            $treeHash = ([string]$resolved).Trim()
-        }
+    $previousEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $resolved = & git -C $repoRoot rev-parse --short HEAD 2>$null
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($resolved)) {
+        $treeHash = ([string]$resolved).Trim()
     }
-    catch {
-        # Leave "unavailable" when git is missing; verify-evidence.ps1 reports it.
-    }
+    $ErrorActionPreference = $previousEap
 
     $content = $content.Replace("TREE_HASH_PLACEHOLDER", $treeHash)
 }
