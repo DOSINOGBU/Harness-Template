@@ -84,6 +84,11 @@
     "maxNudges": 20,
     "stallLimit": 2
   },
+  "modules": {
+    "targetDir": "modules",
+    "mainSourceRoots": ["src", "app", "lib", "components", "server", "api"],
+    "incubatorStaleDays": 21
+  },
   "hygiene": {
     "maxUncommittedFiles": 20,
     "maxUntrackedFiles": 30,
@@ -157,7 +162,9 @@
         "server/**",
         "client/**",
         "api/**",
-        "scripts/**"
+        "scripts/**",
+        "modules/**",
+        "incubator/**"
       ],
       "tests": [
         "tests/**",

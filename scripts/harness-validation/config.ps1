@@ -170,6 +170,12 @@ function Import-HarnessConfig {
         Set-StringArrayConfigValue -Key "hygieneNamingLegacyAllowed" -Value $hygiene.namingLegacyAllowed
     }
 
+    $modules = $config.modules
+    if ($null -ne $modules) {
+        Set-StringArrayConfigValue -Key "modulesMainSourceRoots" -Value $modules.mainSourceRoots
+        Set-PositiveIntegerConfigValue -Key "modulesIncubatorStaleDays" -Value $modules.incubatorStaleDays
+    }
+
     $versionControl = $config.versionControl
     if ($null -ne $versionControl) {
         Set-BooleanConfigValue -Key "autoCommitWorkUnit" -Value $versionControl.autoCommitWorkUnit

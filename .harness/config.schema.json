@@ -18,6 +18,9 @@
     "hygiene": {
       "$ref": "#/definitions/hygiene"
     },
+    "modules": {
+      "$ref": "#/definitions/modules"
+    },
     "versionControl": {
       "$ref": "#/definitions/versionControl"
     }
@@ -73,6 +76,16 @@
       "properties": {
         "maxNudges": { "$ref": "#/definitions/positiveInteger" },
         "stallLimit": { "$ref": "#/definitions/positiveInteger" }
+      }
+    },
+    "modules": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Incubator-to-module lifecycle (docs/MODULES.md): promotion target dir, isolation source roots, staleness threshold.",
+      "properties": {
+        "targetDir": { "type": "string", "minLength": 1 },
+        "mainSourceRoots": { "$ref": "#/definitions/nonEmptyStringArray" },
+        "incubatorStaleDays": { "$ref": "#/definitions/positiveInteger" }
       }
     },
     "hygiene": {

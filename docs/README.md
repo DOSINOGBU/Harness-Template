@@ -25,6 +25,7 @@
 | `ARTIFACTS.md` | 문서 산출물(분석·기록·계획)의 고정 위치와 네이밍 규칙 |
 | `REPORTING.md` | 결과 보고 체계(비쥬얼라이즈 골격·괄호 병기·비유 고정·실행 버튼)의 단일 정답지 |
 | `NAMING.md` | 파일·폴더 이름 통일 규칙(kebab-case, 날짜형, 금지 목록, 레거시 예외) |
+| `MODULES.md` | 소규모 프로젝트의 격리 개발(incubator)과 모듈 승격·재사용 규칙 |
 | `PULL_REQUESTS.md` | PR 생성, 리뷰, 머지 전 확인 기준 |
 | `MAINTENANCE.md` | 드리프트 감지와 안전한 정리 기준 |
 | `PERFORMANCE.md` | 성능 예산과 흔한 함정 |

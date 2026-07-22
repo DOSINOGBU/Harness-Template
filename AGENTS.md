@@ -47,6 +47,7 @@
 | 프론트엔드·백엔드 영역 변경(해당 시) | `docs/FRONTEND.md`, `docs/BACKEND.md`                                                                                              |
 | 분석·보고서·기록 문서 생성        | `docs/ARTIFACTS.md`                                                                                                                |
 | 새 파일·폴더 이름 짓기          | `docs/NAMING.md`                                                                                                                   |
+| 소규모 프로젝트·모듈 개발        | `docs/MODULES.md` (인큐베이터 격리 → 승격 게이트 → 모듈 창고)                                                                          |
 | 결과 보고 작성(비쥬얼라이즈)      | `docs/REPORTING.md`                                                                                                                |
 | exec-plan 없는 즉석 수정 요청   | `.harness/prompts/quick-task.md`                                                                                                   |
 | 보안/권한·인프라/환경변수/시크릿    | `docs/INFRASTRUCTURE.md`, `docs/SECURITY.md`                                                                                       |
