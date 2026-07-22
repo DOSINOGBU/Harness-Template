@@ -18,14 +18,18 @@ Pull Request는 공유 브랜치에 변경을 합치기 전에 목적, 영향, �
 | 타입 검사 | 타입 시스템이 있으면 통과 |
 | 린트 | 린트가 있으면 통과 |
 | 테스트 | 관련 테스트 통과 또는 수동 검증 완료 |
+| 하네스·CI | 이 저장소의 필수 워크플로(예: `.github/workflows/harness-validation.yml`)가 있으면 통과 또는 PR에 실패 사유·면제 근거를 남김 |
 | 변경 목적 | PR 설명만 보고 목적을 이해할 수 있음 |
 | 변경 범위 | 관련 없는 변경 제거 완료 |
 | 민감정보 | 토큰, API 키, 계정 정보가 포함되지 않음 |
 
 검증을 실행할 수 없으면 PR 본문에 이유와 대체 확인 방법을 남깁니다.
-GitHub에서는 `.github/PULL_REQUEST_TEMPLATE.md`가 이 문서의 본문 템플릿을 노출합니다.
+
+PR 본문의 **정본**은 GitHub에 노출되는 `.github/PULL_REQUEST_TEMPLATE.md`입니다. 아래 “PR Body Template” 절은 동일 내용을 문서에서도 볼 수 있게 둔 것입니다.
 
 ## PR Title
+
+커밋 메시지는 `docs/VERSION_CONTROL.md`의 **`type(scope): summary`** 형식을 씁니다. PR 제목은 리스트·알림에서 한눈에 구분하기 쉬운 **`[type] summary`** 를 권장합니다. `type` 의미와 종류는 커밋과 같고, PR 제목에 `scope` 를 넣을지는 팀 가독성에 맞게 선택합니다(요약 안에 괄호로 넣어도 됩니다).
 
 ```text
 [type] summary
@@ -37,15 +41,18 @@ GitHub에서는 `.github/PULL_REQUEST_TEMPLATE.md`가 이 문서의 본문 템�
 [feat] add goal suggestion chatbot flow
 [fix] resolve drag drop sync bug
 [refactor] split project page structure
+[docs] update PR guidelines
+[style] tighten card spacing on dashboard
+[test] add schedule parser cases
+[chore] bump dev dependency
+[perf] reduce list render cost
 ```
-
-type은 `docs/VERSION_CONTROL.md`의 커밋 type과 같은 의미로 사용합니다.
 
 ## PR Body Template
 
 ```markdown
 ## 목적
-- 이 PR의 목적
+- 이 PR의 목적:
 
 ## 변경 사항
 - 변경 1
@@ -62,29 +69,30 @@ type은 `docs/VERSION_CONTROL.md`의 커밋 type과 같은 의미로 사용합�
 - [ ] 타입체크 통과
 - [ ] 린트 통과
 - [ ] 주요 기능 테스트 완료
+- [ ] 하네스 검증 완료
 
 ## 테스트 메모
-- 테스트한 시나리오 작성
+- 테스트한 시나리오:
 
 ## 리스크
-- 영향 가능 영역
-- 주의할 부분
+- 영향 가능 영역:
+- 주의할 부분:
 
 ## Quality Score
-- [ ] 요구사항 충족
-- [ ] 변경 범위 제한
-- [ ] 검증 기록
-- [ ] 디버깅 가능성
-- [ ] 유지보수성
+- [ ] 요구사항을 명확히 충족합니다.
+- [ ] 변경 범위가 필요한 파일로 제한됩니다.
+- [ ] 검증 결과 또는 대체 검증을 기록했습니다.
+- [ ] 실패 지점 추적에 필요한 로그/에러 맥락이 있습니다.
+- [ ] 기존 구조와 책임 경계를 지킵니다.
 
 ## UI 변경
-- 스크린샷 첨부 (있을 경우)
+- 스크린샷 첨부 (있을 경우):
 ```
 
 ## Merge Blockers
 
 - 타입 에러가 있습니다.
-- 테스트 또는 빌드가 실패했습니다.
+- 테스트, 빌드, 또는 필수 CI가 실패했습니다.
 - 충돌이 해결되지 않았습니다.
 - 목적, 변경 사항, 검증 방법 설명이 부족합니다.
 - 민감정보가 포함되어 있습니다.
@@ -111,3 +119,7 @@ type은 `docs/VERSION_CONTROL.md`의 커밋 type과 같은 의미로 사용합�
 공유 기본 브랜치는 PR을 통해 변경합니다.
 프로젝트가 명시적으로 예외를 정하지 않았다면 `main`에 직접 push하지 않습니다.
 프로젝트에 명확한 소유자가 생기면 `.github/CODEOWNERS`를 선택적으로 추가합니다.
+
+## Checklist
+
+작성·리뷰 전 빠르게 훑을 항목은 `.harness/checklists/pull-request.md`를 따릅니다.

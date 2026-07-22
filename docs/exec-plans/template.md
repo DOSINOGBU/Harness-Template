@@ -1,8 +1,12 @@
 # Plan: 작업 이름
 
+파일명·번호·접미 규칙은 `docs/exec-plans/README.md`의 **Plan Creation**을 따릅니다.
+
 ## Status
 
 Ready
+
+<!-- 허용값만 사용: Ready | Active | Blocked | Partial | Completed. 정의는 docs/exec-plans/README.md 의 Status 섹션. -->
 
 ## Goal
 
@@ -27,6 +31,8 @@ Ready
 - Coordination notes:
 
 ## Quality Gate
+
+계획 단계의 기대·선행 조건을 적습니다. 실행이 끝난 뒤 실제 수행 여부·증적은 아래 `Validation`을 최종 기준으로 갱신합니다.
 
 - Required: yes/no
 - Criteria:
@@ -53,6 +59,8 @@ Ready
 
 ## Validation
 
+실행 후 채웁니다. `Quality Gate`와 겹치는 항목(기능 계약·Feature ID·회귀 범위 등)은 여기 값이 사실 기준입니다.
+
 - Pipeline connection:
 - Product quality:
 - Feature contract updated: yes/no
@@ -61,6 +69,8 @@ Ready
 - Existing feature scenarios:
 
 ## Risks
+
+- None
 
 ## Result
 

@@ -17,6 +17,7 @@
 powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Mode Template
 powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -Maintenance
 powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -CodeHealth -Mode Project
+powershell -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -TreatWarningsAsErrors
 ```
 
 실제 프로젝트에 템플릿을 적용한 뒤에는 `docs/TESTING.md`의 TODO 명령을 채우고 `-Mode Project`를 통과시킵니다.
